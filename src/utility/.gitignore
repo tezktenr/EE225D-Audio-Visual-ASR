@@ -1,0 +1,11 @@
+# Audio Files
+*.aif
+*.cda
+*.mid
+*.midi
+*.mp3
+*.mpa
+*.ogg
+*.wav
+*.wma
+*.wpl
