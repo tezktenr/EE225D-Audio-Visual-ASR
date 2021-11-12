@@ -41,9 +41,9 @@ class AudioUtil:
         :return:
         """
         # Check if audioFile1 and audioFile2 exists in the file system
-        missingAudios = FileUtil.checkFileExists([audioFile1, audioFile2])
+        missingAudios = FileUtil.checkFilesExist([audioFile1, audioFile2])
         if (len(missingAudios) > 0):
-            raise ValueError(f"Audio file(s) {missingAudios} don't exist in the filesystem")
+            raise ValueError(f"Audio file(s) {missingAudios} don't exist or they aren't valid files in the filesystem")
 
         # Extract audioFile1 and audioFile2
         audio1 = AudioSegment.from_file(audioFile1, FileUtil.getFileExtension(audioFile1))

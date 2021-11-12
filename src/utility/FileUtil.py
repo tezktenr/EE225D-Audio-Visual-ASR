@@ -6,8 +6,12 @@ Warning:
 """
 
 # Python Standard Libraries
+import os
+import shutil
+import warnings
 import platform
 from pathlib import Path
+
 
 # Third Party Libraries
 
@@ -28,21 +32,81 @@ class FileUtil:
                         "which should not be instantiated")
 
     @staticmethod
-    def checkFileExists(paths: list) -> [str]:
+    def checkFilesExist(filepaths: list) -> [str]:
         """
-        This method takes in a LIST/TUPLE of path names and returns those path names that don't exist in the filesystem
+        This method takes in a LIST/TUPLE of file path names and
+        returns those path names that don't exist in the filesystem
         ------------------------------------------------------------
         :param paths: a list/tuple of pathname
         :return: a list containing those pathnames that doesn't exist in the filesystem
         """
-        if (type(paths) is not list and type(paths) is not tuple):
+        if (type(filepaths) is not list and type(filepaths) is not tuple):
             raise TypeError("The argument 'paths' must be either a list or a tuple")
-        nonExistentFiles = [path for path in paths if not Path(path).exists()]
+
+        nonExistentFiles = []
+        for filepath in filepaths:
+            path = Path(filepath)
+            if (not path.exists() or not path.is_file()):
+                nonExistentFiles.append(str(path))
         return nonExistentFiles
+
+    @staticmethod
+    def makeDirRecursively(path: str):
+        """
+        create all the (including parent) directory in the file system as specified in path
+
+        Warning: the last section of the path must also be specified as a directory and not a file
+            =======================================================
+            ** Here is an Example: makeDirRecursively("/tmp/a/b/c")
+            =======================================================
+            **  tmp/
+            **  ├─ a/
+            **  │  ├─ b/
+            **  │  │  ├─ c/
+            **  │  │  │  ├─ new_file.txt
+            **
+            =======================================================
+        ------------------------------------------------------------
+        :param path: the path (type: str)
+        :return:
+        """
+        p = Path(path)
+        p.mkdir(parents=True, exist_ok=True)
+
+    @staticmethod
+    def removeDirRecursively(path: str, raiseErrorIfNotDeleted = False, forceDelete = False):
+        """
+        Delete a possibly non-empty directory and all the files inside the directory
+
+        Note: path must point to a directory and not a file
+        ------------------------------------------------------------
+        :param path:
+        :return:
+        """
+        p = Path(path)
+        if (not p.exists() or not p.is_dir()):
+            if (raiseErrorIfNotDeleted):
+                raise ValueError(f"The path '{p}' is not a directory or doesn't exist and would not be deleted")
+            else:
+                warnings.warn(f"The path '{p}' is not a directory or doesn't exist and would not be deleted")
+                return
+
+        user_input = input(f"Are you sure you want to clear the directory '{p}' (Y/N):").strip().upper()
+        user_want_to_delete = user_input in ['Y', 'YES']    # if user enter invalid input, it will be assumed as a 'NO'
+
+        if (forceDelete or user_want_to_delete):
+            shutil.rmtree(p)
+        else:
+            if (raiseErrorIfNotDeleted):
+                raise ValueError(f"User rejected to delete the path '{p}'")
+            else:
+                warnings.warn(f"User rejected to delete the path '{p}'")
+                return
+
 
 
     @staticmethod
-    def getFileExtension(pathname):
+    def getFileExtension(pathname: str) -> str:
         """
         This method extracts the file extension of the file located in the path name as specified
 
@@ -79,9 +143,29 @@ class FileUtil:
         return fileExtension[1:]
 
 
+    @staticmethod
+    def joinPath(*pathArgs) -> str:
+        """
+        return the path that are formed by joining all the paths in *pathArgs together
+        ------------------------------------------------------------
+        :param pathArgs: multiple paths (variable length argument list)
+        :return: joined path (type: str)
+        """
+        if (len(pathArgs) <= 0):
+            return ""
+        joinedPath = Path(pathArgs[0])
+        for i in range(1,len(pathArgs)):
+            joinedPath = joinedPath / pathArgs[i].strip("/\\")
+        return str(joinedPath)
+
+    @staticmethod
+    def extractPartsFromPaths(pathname: str) -> tuple:
+        path = Path(pathname)
+        return path.parts
+
 
 
 
 # For Testing Purposes
 if __name__ == "__main__":
-    FileUtil.checkFileExists(["file1", "file2"])
+    FileUtil.checkFilesExist(["file1", "file2"])
