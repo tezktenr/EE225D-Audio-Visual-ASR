@@ -29,6 +29,10 @@ class AudioUtil:
         Note:
             * if outputFileName = None, the combineAudioSegment object will be returned
             * if outputFileName != None, the output audioFile path name is returned
+
+        Warning:
+            * 'wav' and 'raw' format is natively supported. Any other format, like 'mp3' will require FFMPEG. Otherwise,
+                an exception will be thrown
         ------------------------------------------------------------
         :param audioFile1: the path for audio file 1
         :param audioFile2: the path for audio file 2
