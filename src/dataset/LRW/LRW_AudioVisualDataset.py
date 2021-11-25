@@ -1,7 +1,7 @@
 """
-Filename: LRW_AudioDataset.py
+Filename: LRW_AudioVisualDataset.py
 Description: This is a file that contains the class LRW_AudioDataset as a pytorch dataset that contains
-             the audio only data from the LRW dataset
+             both the audio and the video data from the LRW dataset
 """
 
 # Python Standard Libraries
@@ -11,6 +11,7 @@ import random
 # Third Party Libraries
 from torch.utils.data import Dataset
 import numpy as np
+import cv2
 
 
 # Project Module
@@ -21,31 +22,34 @@ from src.dataset.LRW.LRW_Utility import LRW_Utility
 
 
 # Source Code
-class LRW_AudioDataset(Dataset):
+class LRW_AudioVisualDataset(Dataset):
     """
-    This class is responsible for creating the LRW data set.
+    This class is responsible for pre-processing the LRW data set.
         * Dataset link: https://www.robots.ox.ac.uk/~vgg/data/lip_reading/lrw1.html
     """
 
     # By default, "label_sorted.txt" should be placed in the same directory as this source code file
     LABELS_SORTED_PATH = FileUtil.joinPath(".", "label_sorted.txt")
 
-    def __init__(self, folds, dataPath, logger=None, labels_sorted_path = LABELS_SORTED_PATH):
-        self.dataPath = dataPath
+    def __init__(self, folds, audioPath, videoPath, logger=None, labels_sorted_path = LABELS_SORTED_PATH):
+        self.audioPath = audioPath
+        self.videoPath = videoPath
         self.folds = folds
         self.labels_sorted_path = labels_sorted_path
 
-        if (not FileUtil.directoryExists(self.dataPath)):
-            raise ValueError(f"Cannot find the audio dataset at '{FileUtil.resolvePath(self.dataPath)}'")
+        if (not FileUtil.directoryExists(self.audioPath)):
+            raise ValueError(f"Cannot find the audio dataset at '{FileUtil.resolvePath(self.audioPath)}'")
+        if (not FileUtil.directoryExists(self.videoPath)):
+            raise ValueError(f"Cannot find the video dataset at '{FileUtil.resolvePath(self.videoPath)}'")
 
         self.clean = 1 / 7.
 
         self.allWords = LRW_Utility.getAllWords(self.labels_sorted_path)
 
-        self.filenames = glob.glob(FileUtil.joinPath(self.dataPath, '*', self.folds, '*.npz'))
+        self.audioFilenames = glob.glob(FileUtil.joinPath(self.audioPath, '*', self.folds, '*.npz'))
 
         self.data = {}
-        for idx, filepath in enumerate(self.filenames):
+        for idx, filepath in enumerate(self.audioFilenames):
             # extract the words from the file path
             targetWord = FileUtil.extractPartsFromPaths(filepath)[-3]
 
@@ -65,6 +69,18 @@ class LRW_AudioDataset(Dataset):
         if inputs_std == 0.:
             inputs_std = 1.
         return (inputs - np.mean(inputs)) / inputs_std
+
+    @staticmethod
+    def loadVideo(filepath):
+        cap = np.load(filepath)['data']
+        arrays = np.stack([cv2.cvtColor(cap[_], cv2.COLOR_RGB2GRAY)
+                           for _ in range(29)], axis=0)
+        arrays = arrays / 255.
+        return arrays
+
+    @staticmethod
+    def loadAudio(filepath):
+        return np.load(filepath)['data']
 
     def __getitem__(self, idx):
 
@@ -91,17 +107,34 @@ class LRW_AudioDataset(Dataset):
         # elif self.folds == 'val' or self.folds == 'test':
         #     self.list[idx][0] = self.list[idx][0]
         # --------------------------------------------------------------------
+        audioFilePath = self.data[idx][0]
+        audio_file_parts = FileUtil.extractPartsFromPaths(audioFilePath)
 
-        inputs = np.load(self.data[idx][0])['data']
+        videoFilePath = FileUtil.joinPath(self.videoPath, audio_file_parts[-3], audio_file_parts[-2], audio_file_parts[-1])
+        if (not FileUtil.fileExists(videoFilePath)):
+            raise ValueError(f"Encountered inconsistency between audio dataset and video dataset. " +
+                             f"For the audio file '{audio_file_parts[-1]}', "
+                             f"failed to locate the video file '{videoFilePath}'")
+
+        video_inputs = LRW_AudioVisualDataset.loadVideo(videoFilePath)
+        audio_inputs = LRW_AudioVisualDataset.loadAudio(audioFilePath)
+        audio_inputs = self.normalisation(audio_inputs)
+
         labels = self.data[idx][1]
-        inputs = self.normalisation(inputs)
-        return inputs, labels
+
+        return audio_inputs, video_inputs, labels
+
 
     def __len__(self):
-        return len(self.filenames)
+        return len(self.audioFilenames)
 
 
 
 # For Testing Purposes:
 if __name__ == "__main__":
-    pass
+    dataset = LRW_AudioVisualDataset("train",
+                        "S:\\College\\UCB\\2021 Fall\\EE225D\\Projects\\AudioVisualProj\\src\\data_preprocess\\output\\LRW_DataPreprocessor\\audio",
+                        "S:\\College\\UCB\\2021 Fall\\EE225D\\Projects\\AudioVisualProj\\src\\data_preprocess\\output\\LRW_DataPreprocessor\\video",
+                        logger = None,
+                        labels_sorted_path="../../label_sorted.txt")
+    print(dataset[0])

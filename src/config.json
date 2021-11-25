@@ -26,5 +26,22 @@
     "epochs":30,
     "print-stat-interval": 10,
     "test": false
+  },
+  "AudioVisual": {
+    "nClasses": 500,
+    "audio-path": "",
+    "video-path": "",
+    "concat-path": "",
+    "audio-dataset": "S:\\College\\UCB\\2021 Fall\\EE225D\\Projects\\AudioVisualProj\\src\\data_preprocess\\output\\LRW_DataPreprocessor\\audio",
+    "video-dataset": "S:\\College\\UCB\\2021 Fall\\EE225D\\Projects\\AudioVisualProj\\src\\data_preprocess\\output\\LRW_DataPreprocessor\\video",
+    "sorted-labels-path": "./label_sorted.txt",
+    "mode": "finetuneGRU",
+    "every-frame": false,
+    "lr": 0.0003,
+    "batch-size": 18,
+    "workers": 4,
+    "epochs":30,
+    "print-stat-interval": 10,
+    "test": false
   }
 }

@@ -22,7 +22,7 @@ from src.dataset.LRW.LRW_Utility import LRW_Utility
 # Source Code
 class LRW_VideoDataset(Dataset):
     """
-    This class is responsible for pre-processing the LRW data set.
+    This class is responsible for creating the LRW data set.
         * Dataset link: https://www.robots.ox.ac.uk/~vgg/data/lip_reading/lrw1.html
     """
 

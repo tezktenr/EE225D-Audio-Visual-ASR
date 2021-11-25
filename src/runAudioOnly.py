@@ -175,8 +175,6 @@ def test(model, data_loader, criterion, epoch, config, logger, use_gpu):
     logger.info("===================")
     logger.info("** Start Testing **")
     logger.info("===================")
-    logger.info(f'Epoch {epoch}/{totalEpochs - 1}')
-    logger.info(f'Current Learning rate: {TorchUtil.getLearningRates()}')
 
     running_loss, running_corrects, running_all = 0., 0., 0.
 

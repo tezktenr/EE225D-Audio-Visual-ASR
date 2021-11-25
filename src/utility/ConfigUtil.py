@@ -139,6 +139,49 @@ class ConfigUtil:
 
         return videoConfig
 
+    @staticmethod
+    def readAudioVisualConfig(configFilePath) -> dict:
+        """
+        Read the [Audio] section of the config file located at 'configFilePath'
+        ------------------------------------------------------------
+        :param configFilePath:
+        :return: a dictionary of key-value pair
+        """
+
+        def checkAudioVisualConfigFormat(audioVisualConfig):
+            schema = {
+                "type": "object",
+                "properties": {
+                    "nClasses": ConfigType.INTEGER,
+                    "audio-path": ConfigType.STRING,
+                    "video-path": ConfigType.STRING,
+                    "concat-path": ConfigType.STRING,
+                    "audio-dataset": ConfigType.STRING,
+                    "video-dataset": ConfigType.STRING,
+                    "sorted-labels-path": ConfigType.STRING,
+                    "mode": ConfigType.STRING,
+                    "every-frame": ConfigType.BOOLEAN,
+                    "lr": ConfigType.NUMBER,
+                    "batch-size": ConfigType.INTEGER,
+                    "workers": ConfigType.INTEGER,
+                    "epochs": ConfigType.INTEGER,
+                    "print-stat-interval": ConfigType.INTEGER,
+                    "test": ConfigType.BOOLEAN
+                }
+            }
+            validate(instance=audioVisualConfig, schema=schema)
+
+        # read the config
+        config = ConfigUtil.readConfig(configFilePath)
+        audioVisualConfig = config['AudioVisual']
+
+        # check format of the config
+        try:
+            checkAudioVisualConfigFormat(audioVisualConfig)
+        except Exception as e:
+            raise RuntimeError(f"Incorrect format in the config file '{FileUtil.resolvePath(configFilePath)}': {e}")
+
+        return audioVisualConfig
 
     @staticmethod
     def getConfigPath():
