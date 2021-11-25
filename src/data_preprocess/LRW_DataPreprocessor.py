@@ -5,6 +5,7 @@ Description: This is a file that contains the class LRW_DataPreprocessor for pre
 """
 # Python Standard Libraries
 import glob
+import cProfile
 
 # Third Party Libraries
 import librosa
@@ -68,6 +69,8 @@ class LRW_DataPreprocessor:
               check the method 'get_all_mp4_filenames_under_data_dir()'
 
         Warning: BE CAREFUL, the output directory would be cleared before storing the result
+
+        Warning: Slow runtime due to MP4 format. Consider switching to ".wav" format!!
         ------------------------------------------------------------
         :param dataDir: the directory containing the LRW dataset
         :param baseOutputDir: the path to save the results
@@ -132,7 +135,7 @@ class LRW_DataPreprocessor:
 
     @staticmethod
     def preprocessVideo(dataDir, outputDir=DEFAULT_OUTPUT_DIR):
-        # clear the output video directory before starting
+        # clear the output video directory before starting if user wants to
         baseOutputDir = FileUtil.joinPath(outputDir, "/video")
         FileUtil.removeDirRecursively(baseOutputDir)
 
@@ -151,9 +154,27 @@ class LRW_DataPreprocessor:
 
             # save to the output file path
             np.savez(outputFilePath, data=videoData)
+
             if (len(MP4filenames) < 100 or cnt % int(len(MP4filenames) / 100) == 0):
                 print(f"preprocessVideo: {cnt}/{len(MP4filenames)}")
         print(f"preprocessVideo: {len(MP4filenames)}/{len(MP4filenames)}")
+
+
+    @staticmethod
+    def generateSortedLabels(dataDir, outputDir=DEFAULT_OUTPUT_DIR, outputFileName="label_sorted.txt"):
+        # get all words from data directory
+        allSubDirs = glob.glob(dataDir+'/*/')
+        allWords = [FileUtil.extractPartsFromPaths(subDirPath)[-1] for subDirPath in allSubDirs]
+        allWords.sort()
+
+        # get output filepath
+        outputFilepath = FileUtil.joinPath(outputDir, outputFileName)
+
+        # generate sorted labels text file
+        with open(outputFilepath, 'w') as outputFile:
+            for word in allWords:
+                outputFile.write(f"{word}\n")
+
 
 
 
@@ -163,5 +184,5 @@ class LRW_DataPreprocessor:
 # Run to Preprocess Data
 if __name__ == "__main__":
     dataDir = r'S:\College\UCB\2021 Fall\EE225D\Projects\Data\LRW'
-    # LRW_DataPreprocessor.preprocessAudio(dataDir)
+    LRW_DataPreprocessor.preprocessAudio(dataDir)
     LRW_DataPreprocessor.preprocessVideo(dataDir)

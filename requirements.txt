@@ -3,3 +3,5 @@ pytube==11.0.1
 librosa==0.8.1
 numpy==1.19.5
 opencv-python==4.5.4.58
+torch==1.10.0
+jsonschema==3.2.0

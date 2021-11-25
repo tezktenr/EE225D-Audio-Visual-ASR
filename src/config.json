@@ -1,0 +1,30 @@
+{
+  "Audio": {
+    "nClasses": 500,
+    "model-path": "",
+    "sorted-labels-path": "./label_sorted.txt",
+    "dataset-path": "S:\\College\\UCB\\2021 Fall\\EE225D\\Projects\\AudioVisualProj\\src\\data_preprocess\\output\\LRW_DataPreprocessor\\audio",
+    "mode": "temporalConv",
+    "every-frame": false,
+    "lr": 0.0003,
+    "batch-size": 36,
+    "workers": 4,
+    "epochs":30,
+    "print-stat-interval": 10,
+    "test": false
+  },
+  "Video": {
+    "nClasses": 500,
+    "model-path": "",
+    "sorted-labels-path": "./label_sorted.txt",
+    "dataset-path": "S:\\College\\UCB\\2021 Fall\\EE225D\\Projects\\AudioVisualProj\\src\\data_preprocess\\output\\LRW_DataPreprocessor\\video",
+    "mode": "temporalConv",
+    "every-frame": false,
+    "lr": 0.0003,
+    "batch-size": 36,
+    "workers": 4,
+    "epochs":30,
+    "print-stat-interval": 10,
+    "test": false
+  }
+}

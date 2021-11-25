@@ -8,7 +8,6 @@ Warning:
 # Python Standard Libraries
 import os
 import shutil
-import warnings
 import platform
 from pathlib import Path
 
@@ -16,7 +15,7 @@ from pathlib import Path
 # Third Party Libraries
 
 # Project Module
-
+from src.utility.LoggerUtil import LoggerUtil
 
 # Source Code
 class FileUtil:
@@ -30,6 +29,28 @@ class FileUtil:
     def __init__(self):
         raise TypeError(f"class {self.__class__.__name__} is supposed to be a utility class, " +
                         "which should not be instantiated")
+
+    @staticmethod
+    def fileExists(filepath: str) -> bool:
+        """
+        Check if the given file path exists in the file system AND whether it is a regular file
+        ------------------------------------------------------------
+        :param filepath:
+        :return: boolean
+        """
+        p = Path(filepath)
+        return p.exists() and p.is_file()
+
+    @staticmethod
+    def directoryExists(dirpath: str) -> bool:
+        """
+        Check if the given directory path exists in the file system AND whether it is a directory
+        ------------------------------------------------------------
+        :param dirpath:
+        :return: boolean
+        """
+        p = Path(dirpath)
+        return p.exists() and p.is_dir()
 
     @staticmethod
     def checkFilesExist(filepaths: list) -> [str]:
@@ -81,29 +102,60 @@ class FileUtil:
         Note: path must point to a directory and not a file
         ------------------------------------------------------------
         :param path:
+        :param raiseErrorIfNotDeleted: if true, this function will raise an exception if the deletion failed
+        :param forceDelete: if true, the function will not prompt for user's confirmation for deleting the directory
         :return:
         """
-        p = Path(path)
-        if (not p.exists() or not p.is_dir()):
+        if (not FileUtil.directoryExists(path)):
             if (raiseErrorIfNotDeleted):
-                raise ValueError(f"The path '{p}' is not a directory or doesn't exist and would not be deleted")
+                raise ValueError(f"The path '{path}' is not a directory or doesn't exist and would not be deleted")
             else:
-                warnings.warn(f"The path '{p}' is not a directory or doesn't exist and would not be deleted")
+                LoggerUtil.warning(f"The path '{path}' is not a directory or doesn't exist and would not be deleted")
                 return
 
-        user_input = input(f"Are you sure you want to clear the directory '{p}' (Y/N):").strip().upper()
+        user_input = input(f"Are you sure you want to clear the directory '{path}' (Y/[N]):").strip().upper()
         user_want_to_delete = user_input in ['Y', 'YES']    # if user enter invalid input, it will be assumed as a 'NO'
 
         if (forceDelete or user_want_to_delete):
-            shutil.rmtree(p)
+            shutil.rmtree(Path(path))
+        else:
+            if (raiseErrorIfNotDeleted):
+                raise ValueError(f"User rejected to delete the path '{path}'")
+            else:
+                LoggerUtil.warning(f"User rejected to delete the path '{path}'")
+                return
+
+    @staticmethod
+    def removeFile(path: str, raiseErrorIfNotDeleted = False, forceDelete = False):
+        """
+        remove the file as specified by 'path'.
+
+        Note: the path must point to a file and not a directory
+        ------------------------------------------------------------
+        :param path:
+        :param raiseErrorIfNotDeleted: if true, this function will raise an exception if the deletion failed
+        :param forceDelete: if true, the function will not prompt for user's confirmation for deleting the file
+        :return:
+        """
+        p = Path(path)
+        if (not p.exists() or not p.is_file()):
+            if (raiseErrorIfNotDeleted):
+                raise ValueError(f"The path '{p}' is not a file or doesn't exist and would not be deleted")
+            else:
+                LoggerUtil.warning(f"The path '{p}' is not a file or doesn't exist and would not be deleted")
+                return
+
+        user_input = input(f"Are you sure you want to delete the file '{p}' (Y/[N]):").strip().upper()
+        user_want_to_delete = user_input in ['Y', 'YES']  # if user enter invalid input, it will be assumed as a 'NO'
+
+        if (forceDelete or user_want_to_delete):
+            p.unlink()
         else:
             if (raiseErrorIfNotDeleted):
                 raise ValueError(f"User rejected to delete the path '{p}'")
             else:
-                warnings.warn(f"User rejected to delete the path '{p}'")
+                LoggerUtil.warning(f"User rejected to delete the path '{p}'")
                 return
-
-
 
     @staticmethod
     def getFileExtension(pathname: str) -> str:
@@ -160,12 +212,45 @@ class FileUtil:
 
     @staticmethod
     def extractPartsFromPaths(pathname: str) -> tuple:
+        """
+        Extract different sections of the path
+        Note: this function is intended to be used as OS-independent,
+              thereby will handle both back-slash and forward-slash
+            =======================================================
+            ** Here is an Example:
+            =======================================================
+            **  parts = extractPartsFromFile(r'C:/folder1//folder2\folder3\\folder4/file')
+            **  print(parts)
+            **  >>> parts = ('C:\\', 'folder1', 'folder2', 'folder3', 'folder4', 'file')
+            =======================================================
+        ------------------------------------------------------------
+        :param pathname: str
+        :return: tuple of strs
+        """
         path = Path(pathname)
         return path.parts
+
+    @staticmethod
+    def resolvePath(path: str) -> str:
+        """
+        Resolve the path given
+            =======================================================
+            ** Here is an Example:
+            =======================================================
+            **  ## Suppose our working directory currently is "/folder1/folder2/folder3"
+            **  realPath = resolvePath("../../file")
+            **  print(realPath)
+            **  >>> realPath = "/folder1/file"
+            =======================================================
+        ------------------------------------------------------------
+        :param path:
+        :return:
+        """
+        return str(Path(path).resolve())
 
 
 
 
 # For Testing Purposes
 if __name__ == "__main__":
-    FileUtil.checkFilesExist(["file1", "file2"])
+    print(FileUtil.resolvePath("../hi"))
