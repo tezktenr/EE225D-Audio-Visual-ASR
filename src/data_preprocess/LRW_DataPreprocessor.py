@@ -6,6 +6,7 @@ Description: This is a file that contains the class LRW_DataPreprocessor for pre
 # Python Standard Libraries
 import glob
 import cProfile
+import concurrent.futures
 
 # Third Party Libraries
 import librosa
@@ -60,7 +61,22 @@ class LRW_DataPreprocessor:
         return glob.glob(FileUtil.joinPath(dataDir, "*", "*", '*.mp4'))
 
     @staticmethod
-    def preprocessAudio(dataDir, outputDir=DEFAULT_OUTPUT_DIR):
+    def _get_audio_data(filename):
+        try:
+            # audioData is the time-series audio data in the MP4 video
+            audioData, samplingRate = librosa.load(filename, sr=16000)
+
+            # For the LRW dataset,
+            # there should be 19465 samples of audio in each MP4 files when sampling at 16000 Hz
+            audioData = audioData[-19456:]
+        except Exception as err:
+            raise RuntimeError(f"Encountered an error '{err}' " +
+                               f"while trying to decode the audio from the file '{filename}'. " +
+                               f"Please make sure FFmpeg is installed on your machine!")
+        return filename, audioData
+
+    @staticmethod
+    def preprocessAudio(dataDir, outputDir=DEFAULT_OUTPUT_DIR, parallel=True, force=False):
         """
         This method preprocesses the audio components in the LRW dataset.
         It outputs/saves the preprocessed results at the path 'baseOutputDir'
@@ -78,36 +94,54 @@ class LRW_DataPreprocessor:
         """
         # clear the output audio directory before starting
         baseOutputDir = FileUtil.joinPath(outputDir, "/audio")
-        FileUtil.removeDirRecursively(baseOutputDir)
+        FileUtil.removeDirRecursively(baseOutputDir, forceDelete=force)
 
         # preprocessing data
         MP4filenames = LRW_DataPreprocessor.get_all_mp4_filenames_under_data_dir(dataDir)
-        for cnt, filename in enumerate(MP4filenames):
-            try:
-                # audioData is the time-series audio data in the MP4 video
-                audioData, samplingRate = librosa.load(filename, sr=16000)
+        if parallel:
+            audioOutputPaths = dict()
+            print("creating output directory...please wait...")
+            for filename in MP4filenames:
+                # construct output filename
+                pathParts = FileUtil.extractPartsFromPaths(filename)
+                outputFileDir = FileUtil.joinPath(baseOutputDir, pathParts[-3], pathParts[-2])
+                outputFilePath = FileUtil.joinPath(outputFileDir, pathParts[-1][:-4] + '.npz')
 
-                # For the LRW dataset,
-                # there should be 19465 samples of audio in each MP4 files when sampling at 16000 Hz
-                audioData = audioData[-19456:]
-            except Exception as err:
-                raise RuntimeError(f"Encountered an error '{err}' " +
-                                   f"while trying to decode the audio from the file '{filename}'. " +
-                                   f"Please make sure FFmpeg is installed on your machine!")
+                # create the directory and all parent directory if they didn't exist in the file system
+                FileUtil.makeDirRecursively(outputFileDir)
+                audioOutputPaths[filename] = outputFilePath
 
-            # construct output filename
-            pathParts = FileUtil.extractPartsFromPaths(filename)
-            outputFileDir = FileUtil.joinPath(baseOutputDir, pathParts[-3], pathParts[-2])
-            outputFilePath = FileUtil.joinPath(outputFileDir, pathParts[-1][:-4] + '.npz')
+            with concurrent.futures.ProcessPoolExecutor() as executor:
+                # submit jobs to read audio data
+                futures = [ executor.submit(LRW_DataPreprocessor._get_audio_data, filename) for filename in MP4filenames ]
 
-            # create the directory and all parent directory if they didn't exist in the file system
-            FileUtil.makeDirRecursively(outputFileDir)
+                cnt = 0
+                for f in concurrent.futures.as_completed(futures):
+                    filename, audioData = f.result()
 
-            # save to the output file path
-            np.savez(outputFilePath, data=audioData)
+                    # save to the output file path
+                    np.savez(audioOutputPaths[filename], data=audioData)
 
-            if (len(MP4filenames) < 100 or cnt % int(len(MP4filenames) / 100) == 0):
-                print(f"preprocessAudio: {cnt}/{len(MP4filenames)}")
+                    if (len(MP4filenames) < 100 or cnt % int(len(MP4filenames) / 100) == 0):
+                        print(f"preprocessAudio: {cnt}/{len(MP4filenames)}")
+                    cnt += 1
+        else:
+            for cnt, filename in enumerate(MP4filenames):
+                audioData = LRW_DataPreprocessor._get_audio_data(filename)
+
+                # construct output filename
+                pathParts = FileUtil.extractPartsFromPaths(filename)
+                outputFileDir = FileUtil.joinPath(baseOutputDir, pathParts[-3], pathParts[-2])
+                outputFilePath = FileUtil.joinPath(outputFileDir, pathParts[-1][:-4] + '.npz')
+
+                # create the directory and all parent directory if they didn't exist in the file system
+                FileUtil.makeDirRecursively(outputFileDir)
+
+                # save to the output file path
+                np.savez(outputFilePath, data=audioData)
+
+                if (len(MP4filenames) < 100 or cnt % int(len(MP4filenames) / 100) == 0):
+                    print(f"preprocessAudio: {cnt}/{len(MP4filenames)}")
         print(f"preprocessAudio: {len(MP4filenames)}/{len(MP4filenames)}")
 
 
@@ -134,10 +168,10 @@ class LRW_DataPreprocessor:
 
 
     @staticmethod
-    def preprocessVideo(dataDir, outputDir=DEFAULT_OUTPUT_DIR):
+    def preprocessVideo(dataDir, outputDir=DEFAULT_OUTPUT_DIR, force=False):
         # clear the output video directory before starting if user wants to
         baseOutputDir = FileUtil.joinPath(outputDir, "/video")
-        FileUtil.removeDirRecursively(baseOutputDir)
+        FileUtil.removeDirRecursively(baseOutputDir, forceDelete=force)
 
         # preprocessing data
         MP4filenames = LRW_DataPreprocessor.get_all_mp4_filenames_under_data_dir(dataDir)
@@ -184,5 +218,5 @@ class LRW_DataPreprocessor:
 # Run to Preprocess Data
 if __name__ == "__main__":
     dataDir = r'S:\College\UCB\2021 Fall\EE225D\Projects\Data\LRW'
-    LRW_DataPreprocessor.preprocessAudio(dataDir)
-    LRW_DataPreprocessor.preprocessVideo(dataDir)
+    LRW_DataPreprocessor.preprocessAudio(dataDir, force=True)
+    LRW_DataPreprocessor.preprocessVideo(dataDir, force=True)

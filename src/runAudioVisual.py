@@ -200,7 +200,7 @@ def train(audio_model, video_model, concat_model, data_loader, criterion, epoch,
 
     # finished the entire epoch for this training
     # print statistics for this epoch
-    logger.info('(training) Epoch:\t{:2}\tLoss: {:.4f}\tAcc:{:.4f}\n'.format(
+    logger.info('(training) Epoch:\t{:2}\tLoss: {:.4f}\tAcc:{:.4f}'.format(
         epoch,
         running_loss / len(data_loader.dataset),
         running_corrects / len(data_loader.dataset))
@@ -224,7 +224,7 @@ def test(audio_model, video_model, concat_model, data_loader, criterion, epoch, 
     mode = config["mode"]
     printInterval = config["print-stat-interval"]
 
-    # switch to training mode
+    # switch to validation mode
     audio_model.eval()
     video_model.eval()
     concat_model.eval()
@@ -296,7 +296,7 @@ def run_model(config, use_gpu):
     else:
         raise ValueError(f"Unknown mode {mode} for concat_model")
 
-    # if config["model-path"] is specified, reload that model instead
+    # if config["audio-path"], config["video-path"], config["concat-path"] is specified, reload those models instead
     TorchUtil.reloadModel(audio_model, logger, config["audio-path"])
     TorchUtil.reloadModel(video_model, logger, config["video-path"])
     TorchUtil.reloadModel(concat_model, logger, config["concat-path"])

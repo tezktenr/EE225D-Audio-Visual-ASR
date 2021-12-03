@@ -64,7 +64,7 @@ class LoggerUtil:
 
     @staticmethod
     def printAllStat(logger, begin_time, batch_idx, running_loss, running_corrects, running_all, data_loader):
-        logger.info('Process: [{:5.0f}/{:5.0f} ({:.0f}%)]\tLoss: {:.4f}\tAcc:{:.4f}\tCost time:{:5.0f}s\tEstimated time:{:5.0f}s\r\n'.format(
+        logger.info('Process: [{:5.0f}/{:5.0f} ({:.0f}%)]\tLoss: {:.4f}\tAcc:{:.4f}\tCost time:{:5.0f}s\tEstimated time:{:5.0f}s\r'.format(
                 running_all,
                 len(data_loader.dataset),
                 100. * batch_idx / (len(data_loader) - 1),

@@ -113,8 +113,10 @@ class FileUtil:
                 LoggerUtil.warning(f"The path '{path}' is not a directory or doesn't exist and would not be deleted")
                 return
 
-        user_input = input(f"Are you sure you want to clear the directory '{path}' (Y/[N]):").strip().upper()
-        user_want_to_delete = user_input in ['Y', 'YES']    # if user enter invalid input, it will be assumed as a 'NO'
+        user_want_to_delete = False
+        if (not forceDelete):
+            user_input = input(f"Are you sure you want to clear the directory '{path}' (Y/[N]):").strip().upper()
+            user_want_to_delete = user_input in ['Y', 'YES']    # if user enter invalid input, it will be assumed as a 'NO'
 
         if (forceDelete or user_want_to_delete):
             shutil.rmtree(Path(path))
@@ -145,8 +147,10 @@ class FileUtil:
                 LoggerUtil.warning(f"The path '{p}' is not a file or doesn't exist and would not be deleted")
                 return
 
-        user_input = input(f"Are you sure you want to delete the file '{p}' (Y/[N]):").strip().upper()
-        user_want_to_delete = user_input in ['Y', 'YES']  # if user enter invalid input, it will be assumed as a 'NO'
+        user_want_to_delete = False
+        if (not forceDelete):
+            user_input = input(f"Are you sure you want to delete the file '{p}' (Y/[N]):").strip().upper()
+            user_want_to_delete = user_input in ['Y', 'YES']  # if user enter invalid input, it will be assumed as a 'NO'
 
         if (forceDelete or user_want_to_delete):
             p.unlink()
