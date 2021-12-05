@@ -7,6 +7,8 @@ Description: This is a file that contains the class LRW_DataPreprocessor for pre
 import glob
 import cProfile
 import concurrent.futures
+import warnings
+import time
 
 # Third Party Libraries
 import librosa
@@ -16,6 +18,7 @@ import cv2
 # Project Module
 from src.utility.OtherUtil import OtherUtil
 from src.utility.FileUtil import FileUtil
+from src.utility.LoggerUtil import LoggerUtil
 
 
 # Source Code
@@ -58,21 +61,36 @@ class LRW_DataPreprocessor:
         :param dataDir: the path for data directory
         :return: list of all mp4 file paths within the data directory
         """
+        if (not FileUtil.directoryExists(dataDir)):
+            raise RuntimeError(f"Data directory {dataDir} doesn't exist in the file system")
         return glob.glob(FileUtil.joinPath(dataDir, "*", "*", '*.mp4'))
 
     @staticmethod
-    def _get_audio_data(filename):
-        try:
-            # audioData is the time-series audio data in the MP4 video
-            audioData, samplingRate = librosa.load(filename, sr=16000)
+    def _get_audio_data(filename, retry=5, retryTimeout=2):
+        attemptCnt = 0
+        audioData = None
+        finished = False
+        while (not finished):
+            attemptCnt += 1
+            try:
+                # audioData is the time-series audio data in the MP4 video
+                audioData, samplingRate = librosa.load(filename, sr=16000)
 
-            # For the LRW dataset,
-            # there should be 19465 samples of audio in each MP4 files when sampling at 16000 Hz
-            audioData = audioData[-19456:]
-        except Exception as err:
-            raise RuntimeError(f"Encountered an error '{err}' " +
-                               f"while trying to decode the audio from the file '{filename}'. " +
-                               f"Please make sure FFmpeg is installed on your machine!")
+                # For the LRW dataset,
+                # there should be 19465 samples of audio in each MP4 files when sampling at 16000 Hz
+                audioData = audioData[-19456:]
+            except Exception as err:
+                if (attemptCnt <= retry):
+                    LoggerUtil.warning(f"Unexpected error '{err}' while decoding audio file '{filename}'. " +
+                                       f"Retry Count: {attemptCnt}/{retry}. Retrying after f{retryTimeout} seconds")
+                    time.sleep(retryTimeout)
+                else:
+                    raise RuntimeError(f"Encountered an error '{err}' " +
+                                       f"while trying to decode the audio from the file '{filename}'. " +
+                                       f"All retry attempts failed. " +
+                                       f"Please make sure FFmpeg is installed on your machine!")
+            else:
+                finished = True
         return filename, audioData
 
     @staticmethod
@@ -112,10 +130,18 @@ class LRW_DataPreprocessor:
                 audioOutputPaths[filename] = outputFilePath
 
             with concurrent.futures.ProcessPoolExecutor() as executor:
-                # submit jobs to read audio data
-                futures = [ executor.submit(LRW_DataPreprocessor._get_audio_data, filename) for filename in MP4filenames ]
-
                 cnt = 0
+
+                # submit jobs to read audio data
+                futures = []
+                for filename in MP4filenames:
+                    if (FileUtil.fileExists(audioOutputPaths[filename])):
+                        LoggerUtil.warning(f"Audio output files '{audioOutputPaths[filename]}' already existed. " +
+                                           f"Skipping...")
+                        cnt += 1
+                    else:
+                        futures.append(executor.submit(LRW_DataPreprocessor._get_audio_data, filename))
+
                 for f in concurrent.futures.as_completed(futures):
                     filename, audioData = f.result()
 
@@ -176,18 +202,22 @@ class LRW_DataPreprocessor:
         # preprocessing data
         MP4filenames = LRW_DataPreprocessor.get_all_mp4_filenames_under_data_dir(dataDir)
         for cnt, filename in enumerate(MP4filenames):
-            videoData = LRW_DataPreprocessor.extract_opencv(filename)[:, 115:211, 79:175]
-
             # construct output filename
             pathParts = FileUtil.extractPartsFromPaths(filename)
             outputFileDir = FileUtil.joinPath(baseOutputDir, pathParts[-3], pathParts[-2])
             outputFilePath = FileUtil.joinPath(outputFileDir, pathParts[-1][:-4] + '.npz')
 
-            # create the directory and all parent directory if they didn't exist in the file system
-            FileUtil.makeDirRecursively(outputFileDir)
+            if (FileUtil.fileExists(outputFilePath)):
+                LoggerUtil.warning(f"Video output files '{outputFilePath}' already existed. " +
+                                   f"Skipping...")
+            else:
+                videoData = LRW_DataPreprocessor.extract_opencv(filename)[:, 115:211, 79:175]
 
-            # save to the output file path
-            np.savez(outputFilePath, data=videoData)
+                # create the directory and all parent directory if they didn't exist in the file system
+                FileUtil.makeDirRecursively(outputFileDir)
+
+                # save to the output file path
+                np.savez(outputFilePath, data=videoData)
 
             if (len(MP4filenames) < 100 or cnt % int(len(MP4filenames) / 100) == 0):
                 print(f"preprocessVideo: {cnt}/{len(MP4filenames)}")
@@ -217,6 +247,6 @@ class LRW_DataPreprocessor:
 
 # Run to Preprocess Data
 if __name__ == "__main__":
-    dataDir = r'S:\College\UCB\2021 Fall\EE225D\Projects\Data\LRW'
-    LRW_DataPreprocessor.preprocessAudio(dataDir, force=True)
-    LRW_DataPreprocessor.preprocessVideo(dataDir, force=True)
+    dataDir = r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\LRW"
+    LRW_DataPreprocessor.preprocessAudio(dataDir, force=False)
+    LRW_DataPreprocessor.preprocessVideo(dataDir, force=False)
