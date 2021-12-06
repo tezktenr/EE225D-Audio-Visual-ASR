@@ -312,8 +312,8 @@ def run_model(config, use_gpu):
     lr_scheduler = AdjustLR(optimizer, [config["lr"]], sleep_epochs=5, half=5, verbose=1)
 
     # perform either training or testing as specified in config
-    test = config["test"]
-    if (test):
+    isTest = config["test"]
+    if (isTest):
         # perform testing of model
         test(audio_model, video_model, concat_model, dset_loaders["val"], criterion, 0, config, logger, use_gpu)
         test(audio_model, video_model, concat_model, dset_loaders["test"], criterion, 0, config, logger, use_gpu)
