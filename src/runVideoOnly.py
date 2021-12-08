@@ -154,7 +154,7 @@ def train(model, data_loader, criterion, epoch, optimizer, config, logger, use_g
         running_all += len(inputs)
 
         ### print all statistics
-        if (batch_idx is not 0 and batch_idx % printInterval == 0 or (batch_idx == len(data_loader)-1)):
+        if (batch_idx != 0 and batch_idx % printInterval == 0 or (batch_idx == len(data_loader)-1)):
             LoggerUtil.printAllStat(logger, beginTime, batch_idx, running_loss, running_corrects, running_all, data_loader)
 
     # finished the entire epoch for this training
@@ -215,7 +215,7 @@ def test(model, data_loader, criterion, epoch, config, logger, use_gpu):
         running_all += len(inputs)
 
         ### print all statistics
-        if (batch_idx is not 0 and batch_idx % printInterval == 0 or (batch_idx == len(data_loader) - 1)):
+        if (batch_idx != 0 and batch_idx % printInterval == 0 or (batch_idx == len(data_loader) - 1)):
             LoggerUtil.printAllStat(logger, beginTime, batch_idx, running_loss, running_corrects, running_all, data_loader)
 
     # finished the entire epoch for this test

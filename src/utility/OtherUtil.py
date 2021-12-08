@@ -7,6 +7,7 @@ Description: This is a file that contains the class OtherUtil for general purpos
 import os
 
 # Third Party Libraries
+import psutil
 
 # Project Module
 
@@ -25,7 +26,9 @@ class OtherUtil:
     def getCurrentDirPath():
         return os.getcwd()
 
-
+    @staticmethod
+    def getMemoryUsagePercentage():
+        return psutil.virtual_memory()[2]
 
 
 # For Testing Purposes:
