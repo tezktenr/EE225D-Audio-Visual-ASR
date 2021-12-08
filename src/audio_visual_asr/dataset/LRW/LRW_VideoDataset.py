@@ -15,7 +15,7 @@ import cv2
 # Project Module
 from src.utility.FileUtil import FileUtil
 from src.utility.LoggerUtil import LoggerUtil
-from src.dataset.LRW.LRW_Utility import LRW_Utility
+from src.audio_visual_asr.dataset import LRW_Utility
 
 
 
@@ -79,6 +79,6 @@ class LRW_VideoDataset(Dataset):
 if __name__ == "__main__":
     dataset = LRW_VideoDataset("test",
                                r'S:\College\UCB\2021 Fall\EE225D\Projects\AudioVisualProj\src\data_preprocess\output\LRW_DataPreprocessor\video',
-                               labels_sorted_path = "../../label_sorted.txt")
+                               labels_sorted_path ="../../label_sorted.txt")
     for i in dataset:
         print(i)

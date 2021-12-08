@@ -6,7 +6,6 @@ Description: This is the main execution file that starts the training using the 
 # Python Standard Libraries
 import os
 import time
-from pathlib import Path
 
 # Third Party Libraries
 import torch
@@ -23,8 +22,8 @@ from src.utility.TorchUtil import TorchUtil
 from src.utility.LoggerUtil import LoggerUtil
 from src.utility.VideoUtil import VideoUtil
 from src.model.AudioVisualModel import ConcatGRU, AudioRecognition, LipReading
-from src.dataset.LRW.LRW_AudioVisualDataset import LRW_AudioVisualDataset
-from src.lr_scheduler.AdjustLR import AdjustLR
+from src.audio_visual_asr.dataset import LRW_AudioVisualDataset
+from src.audio_visual_asr.lr_scheduler import AdjustLR
 
 
 # Global Constants
