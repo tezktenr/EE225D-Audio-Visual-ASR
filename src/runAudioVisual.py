@@ -313,7 +313,7 @@ def run_model(config, use_gpu):
     dset_loaders, dset_sizes = get_data_loader(config, logger)
 
     # learning rate scheduler
-    lr_scheduler = AdjustLR(optimizer, [config["lr"]], sleep_epochs=5, half=5, verbose=1)
+    lr_scheduler = AdjustLR(optimizer, [ config["lr"] for _ in range(len(optimizer.param_groups)) ], sleep_epochs=5, half=5, verbose=1)
 
     # perform either training or testing as specified in config
     test = config["test"]
