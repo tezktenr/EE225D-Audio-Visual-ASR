@@ -1,4 +1,4 @@
 # EE225D Final Project
-Student 1: Poon, Chun Hei
+Student A: Poon, Chun Hei
 
-Student 2: Dai, Jianglai
+Student B: Dai, Jianglai
