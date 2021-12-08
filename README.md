@@ -1,8 +1,16 @@
-# Audio-visual Merged with TTS
+# EE225D Final Project
+
+Student 1: Poon, Chun Hei
+
+Student 2: Dai, Jianglai
 
 
 
-## 1. Initialize venv
+## Audio-visual Merged with TTS
+
+
+
+### 1. Initialize venv
 
 ```bash
 python -m venv ./venv
@@ -11,7 +19,7 @@ source ./venv/activate
 
 
 
-## 2. Install Dependencies & Download TTS Models
+### 2. Install Dependencies & Download TTS Models
 
 ```bash
 sudo apt install espeak
@@ -26,7 +34,7 @@ Download files, put them into the current directory and rename them as below.
 - [config_vocoder.json](https://drive.google.com/uc?id=1Rd0R_nRCrbjEdpOwq6XwZAktvugiBvmu)
 - [scale_stats.npy](https://drive.google.com/uc?id=11oY3Tv0kQtxK_JPgxrfesa99maVXHNxU)
 
-## 3. Clone TTS Repository & Install
+### 3. Clone TTS Repository & Install
 
 ```
 cd TTS
@@ -38,7 +46,7 @@ cd ..
 
 
 
-## 4. Run TTS
+### 4. Run TTS
 
 ```bash
 python trytts.py
@@ -46,7 +54,7 @@ python trytts.py
 
 
 
-## 5. Run AudioVisual
+### 5. Run AudioVisual
 
 ```
 cd EE225D-Audio-Visual-ASR
