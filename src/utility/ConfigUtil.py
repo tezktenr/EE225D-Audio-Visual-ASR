@@ -48,7 +48,7 @@ class ConfigUtil:
         """
         # Check if the config file exists
         if not FileUtil.fileExists(configFilePath):
-            raise ValueError(f"Cannot find the config file 'config.json' at '{FileUtil.resolvePath(configFilePath)}'")
+            raise ValueError(f"Cannot find the config file at '{FileUtil.resolvePath(configFilePath)}'")
 
         # Try to read the config file. If failed, throw exception.
         try:
@@ -60,9 +60,9 @@ class ConfigUtil:
             return config
 
     @staticmethod
-    def readAudioConfig(configFilePath) -> dict:
+    def readAudioTrainConfig(configFilePath) -> dict:
         """
-        Read the [Audio] section of the config file located at 'configFilePath'
+        Read the [Audio] section of the train_config file located at 'configFilePath'
         ------------------------------------------------------------
         :param configFilePath:
         :return: a dictionary of key-value pair
@@ -100,9 +100,9 @@ class ConfigUtil:
         return audioConfig
 
     @staticmethod
-    def readVideoConfig(configFilePath) -> dict:
+    def readVideoTrainConfig(configFilePath) -> dict:
         """
-        Read the [Video] section of the config file located at 'configFilePath'
+        Read the [Video] section of the train_config file located at 'configFilePath'
         ------------------------------------------------------------
         :param configFilePath:
         :return: a dictionary of key-value pair
@@ -140,9 +140,9 @@ class ConfigUtil:
         return videoConfig
 
     @staticmethod
-    def readAudioVisualConfig(configFilePath) -> dict:
+    def readAudioVisualTrainConfig(configFilePath) -> dict:
         """
-        Read the [Audio] section of the config file located at 'configFilePath'
+        Read the [AudioVisual] section of the train_config file located at 'configFilePath'
         ------------------------------------------------------------
         :param configFilePath:
         :return: a dictionary of key-value pair
@@ -183,12 +183,12 @@ class ConfigUtil:
 
         return audioVisualConfig
 
-    @staticmethod
-    def getConfigPath():
-        parser = argparse.ArgumentParser()
-        parser.add_argument('--config', default='./config.json', help="path to 'config.json' file")
-        args = parser.parse_args()
-        return args.config
+    # @staticmethod
+    # def getConfigPath():
+    #     parser = argparse.ArgumentParser()
+    #     parser.add_argument('--config', default='./train_config.json', help="path to 'train_config.json' file")
+    #     args = parser.parse_args()
+    #     return args.config
 
 
 

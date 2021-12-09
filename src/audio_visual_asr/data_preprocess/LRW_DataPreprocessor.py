@@ -382,13 +382,9 @@ class LRW_DataPreprocessor:
                 outputFile.write(f"{word}\n")
 
 
-
-
-
-
 # Run to Preprocess Data
 if __name__ == "__main__":
-    dataDir = r"E:\lipread_mp4"
+    dataDir = r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\LRW"
     outputDir = LRW_DataPreprocessor.DEFAULT_OUTPUT_DIR
     LRW_DataPreprocessor.preprocessAudio(dataDir, outputDir=outputDir, force=False)
     LRW_DataPreprocessor.preprocessVideo(dataDir, outputDir=outputDir, force=False)

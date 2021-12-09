@@ -1,11 +1,12 @@
 """
-Filename: runAudioOnly.py
-Description: This is the main execution file that starts the training using the Audio Only model
+Filename: runVideoOnly.py
+Description: This is the main execution file that starts the training using the Video Only model
 """
 
 # Python Standard Libraries
 import os
 import time
+import argparse
 
 # Third Party Libraries
 import torch
@@ -20,14 +21,17 @@ from src.utility.ConfigUtil import ConfigUtil
 from src.utility.FileUtil import FileUtil
 from src.utility.TorchUtil import TorchUtil
 from src.utility.LoggerUtil import LoggerUtil
-from src.audio_visual_asr.model import AudioRecognition
-from src.audio_visual_asr.dataset import LRW_AudioDataset
-from src.audio_visual_asr.lr_scheduler import AdjustLR
+from src.utility.VideoUtil import VideoUtil
+from src.audio_visual_asr.model.VideoModel import LipReading
+from src.audio_visual_asr.dataset.LRW.LRW_VideoDataset import LRW_VideoDataset
+from src.audio_visual_asr.lr_scheduler.AdjustLR import AdjustLR
 
+# Global Constants
+CURR_SOURCE_DIR_PATH = FileUtil.getDirectoryOfFile(FileUtil.resolvePath(__file__))
 
 # Source Code
 def get_model_save_path(config):
-    base_save_path = "../saved_models/audioOnlyModels"
+    base_save_path = FileUtil.joinPath(CURR_SOURCE_DIR_PATH, "_SAVED_MODELS", "VideoOnly")
     isEveryFrame = config["every-frame"]
     mode = config["mode"]
 
@@ -92,7 +96,7 @@ def get_data_loader(config, logger):
 
     folds = ['train', 'val', 'test']
     for fold in folds:
-        dsets[fold] = LRW_AudioDataset(fold, dataset_path, logger, sorted_labels_path)
+        dsets[fold] = LRW_VideoDataset(fold, dataset_path, logger, sorted_labels_path)
         dset_sizes[fold] = len(dsets[fold])
         dset_loaders[fold] = torch.utils.data.DataLoader(dsets[fold],
                                                          batch_size=batch_size, num_workers=workers_num, shuffle=True)
@@ -123,7 +127,14 @@ def train(model, data_loader, criterion, epoch, optimizer, config, logger, use_g
     beginTime = time.time()
     for batch_idx, (inputs, targets) in enumerate(data_loader):
         # prepare inputs and targets/labels
-        inputs = inputs.float()
+        batch_img = VideoUtil.RandomCrop(inputs.numpy(), (88, 88))
+        batch_img = VideoUtil.ColorNormalize(batch_img)
+        batch_img = VideoUtil.HorizontalFlip(batch_img)
+        batch_img = np.reshape(batch_img,
+                               (batch_img.shape[0], batch_img.shape[1], batch_img.shape[2], batch_img.shape[3], 1))
+        inputs = torch.from_numpy(batch_img)
+        inputs = inputs.float().permute(0, 4, 1, 2, 3)
+
         inputs = Variable(inputs.cuda()) if use_gpu else Variable(inputs)
         targets = Variable(targets.cuda()) if use_gpu else Variable(targets)
 
@@ -181,7 +192,13 @@ def test(model, data_loader, criterion, epoch, config, logger, use_gpu):
     beginTime = time.time()
     for batch_idx, (inputs, targets) in enumerate(data_loader):
         # prepare inputs and targets/labels
-        inputs = inputs.float()
+        batch_img = VideoUtil.CenterCrop(inputs.numpy(), (88, 88))
+        batch_img = VideoUtil.ColorNormalize(batch_img)
+        batch_img = np.reshape(batch_img,
+                               (batch_img.shape[0], batch_img.shape[1], batch_img.shape[2], batch_img.shape[3], 1))
+        inputs = torch.from_numpy(batch_img)
+        inputs = inputs.float().permute(0, 4, 1, 2, 3)
+
         inputs = Variable(inputs.cuda(), volatile=True) if use_gpu else Variable(inputs, volatile=True)
         targets = Variable(targets.cuda()) if use_gpu else Variable(targets)
 
@@ -219,13 +236,13 @@ def run_model(config, use_gpu):
     # create the directory for saving trained models and log files
     save_path = get_model_save_path(config)
     log_file_path = FileUtil.joinPath(save_path, f'{config["mode"]}_{config["lr"]}.txt')
-    logger = LoggerUtil.getLogger(log_file_path, "audioModelLogger")
+    logger = LoggerUtil.getLogger(log_file_path, "videoModelLogger")
     logger.info("\n" + "-" * 75)
     LoggerUtil.logCurrentTime(logger)
 
     # create a new model
-    model = AudioRecognition(mode=config["mode"],
-                             inputDim=512,
+    model = LipReading(mode=config["mode"],
+                             inputDim=256,
                              hiddenDim=512,
                              nClasses=config["nClasses"],
                              frameLen=29,
@@ -259,10 +276,19 @@ def run_model(config, use_gpu):
             test(model, dset_loaders["val"], criterion, epoch, config, logger, use_gpu)
 
 
-def main():
-    # reading configuration
-    configFilePath = ConfigUtil.getConfigPath()
-    audioConfig = ConfigUtil.readAudioConfig(configFilePath)
+def getVideoConfig():
+    # read audio visual section in "train_config.json"
+    parser = argparse.ArgumentParser(description='Train Video Only ASR Model')
+    _DEFAULT_CONFIG_PATH = FileUtil.joinPath(CURR_SOURCE_DIR_PATH, "train_config.json")
+    parser.add_argument('--config', default=_DEFAULT_CONFIG_PATH, help='path to "train_config.json" file')
+    args =parser.parse_args()
+    config = ConfigUtil.readVideoTrainConfig(args.config)
+    return config
+
+
+def trainVideoOnly():
+    # get audio visual train_config
+    videoConfig = getVideoConfig()
 
     # setup GPU
     os.environ['CUDA_VISIBLE_DEVICES'] = '0'
@@ -277,10 +303,9 @@ def main():
     np.random.seed(SEED)
 
     # run
-    run_model(audioConfig, use_gpu)
-
+    run_model(videoConfig, use_gpu)
 
 
 # Main Execution Block
 if __name__ == "__main__":
-    main()
+    trainVideoOnly()

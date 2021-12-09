@@ -34,7 +34,7 @@ use_cuda = False
 
 # model paths
 TTS_MODEL = "tts_model.pth.tar"
-TTS_CONFIG = "config.json"
+TTS_CONFIG = "train_config.json"
 VOCODER_MODEL = "vocoder_model.pth.tar"
 VOCODER_CONFIG = "config_vocoder.json"
 
