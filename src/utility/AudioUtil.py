@@ -7,6 +7,7 @@ Description: This is a file that contains the class AudioUtil for audio waveform
 
 # Third Party Libraries
 from pydub import AudioSegment
+import numpy as np
 
 # Project Module
 from src.utility.FileUtil import FileUtil
@@ -63,6 +64,12 @@ class AudioUtil:
             combinedAudio.export(outputFileName+f".{outputFormat}", format=outputFormat)
             return outputFileName
 
+    @staticmethod
+    def normalizeAudio(audioInputs):
+        inputs_std = np.std(audioInputs)
+        if inputs_std == 0.:
+            inputs_std = 1.
+        return (audioInputs - np.mean(audioInputs)) / inputs_std
 
 
 

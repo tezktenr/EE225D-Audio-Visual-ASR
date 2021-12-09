@@ -32,6 +32,17 @@ class LRW_Utility:
                 allWords[line] = index
         return allWords
 
+    @staticmethod
+    def getWordsArray(labels_sorted_path):
+        if (not FileUtil.fileExists(labels_sorted_path)):
+            raise ValueError(f"Could not find the file 'labels_sorted.txt' at path '{FileUtil.resolvePath(labels_sorted_path)}'")
+
+        words = []
+        with open(labels_sorted_path, 'r') as labels_sorted_file:
+            for word in labels_sorted_file.read().splitlines():
+                words.append(word)
+        return words
+
 
 
 # For Testing Purposes

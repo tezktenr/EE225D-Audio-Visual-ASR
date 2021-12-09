@@ -16,6 +16,7 @@ import cv2
 # Project Module
 from src.utility.FileUtil import FileUtil
 from src.utility.LoggerUtil import LoggerUtil
+from src.utility.AudioUtil import AudioUtil
 from src.audio_visual_asr.dataset.LRW.LRW_Utility import LRW_Utility
 
 
@@ -63,11 +64,11 @@ class LRW_AudioVisualDataset(Dataset):
         if (logger is not None):
             logger.info(f"Loaded {self.folds} part of the data")
 
-    def normalisation(self, inputs):
-        inputs_std = np.std(inputs)
-        if inputs_std == 0.:
-            inputs_std = 1.
-        return (inputs - np.mean(inputs)) / inputs_std
+    # def normalisation(self, inputs):
+    #     inputs_std = np.std(inputs)
+    #     if inputs_std == 0.:
+    #         inputs_std = 1.
+    #     return (inputs - np.mean(inputs)) / inputs_std
 
     @staticmethod
     def loadVideo(filepath):
@@ -117,7 +118,7 @@ class LRW_AudioVisualDataset(Dataset):
 
         video_inputs = LRW_AudioVisualDataset.loadVideo(videoFilePath)
         audio_inputs = LRW_AudioVisualDataset.loadAudio(audioFilePath)
-        audio_inputs = self.normalisation(audio_inputs)
+        audio_inputs = AudioUtil.normalizeAudio(audio_inputs)
 
         labels = self.data[idx][1]
 

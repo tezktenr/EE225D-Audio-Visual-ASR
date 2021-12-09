@@ -356,6 +356,13 @@ class LRW_DataPreprocessor:
 
 
     @staticmethod
+    def preprocessSingleFile(filepath):
+        _, audioData = LRW_DataPreprocessor._get_audio_data(filepath)
+        _, videoData = LRW_DataPreprocessor._get_video_data(filepath)
+        return audioData, videoData
+
+
+    @staticmethod
     def generateSortedLabels(dataDir, outputDir=DEFAULT_OUTPUT_DIR, outputFileName="label_sorted.txt"):
         """
         Generate the 'label_sorted.txt' file given the LRW dataset directory
