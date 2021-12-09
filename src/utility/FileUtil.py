@@ -38,7 +38,7 @@ class FileUtil:
         :param filepath:
         :return: boolean
         """
-        p = Path(filepath)
+        p = Path(str(filepath))
         return p.exists() and p.is_file()
 
     @staticmethod
@@ -49,7 +49,7 @@ class FileUtil:
         :param dirpath:
         :return: boolean
         """
-        p = Path(dirpath)
+        p = Path(str(dirpath))
         return p.exists() and p.is_dir()
 
     @staticmethod
@@ -66,7 +66,7 @@ class FileUtil:
 
         nonExistentFiles = []
         for filepath in filepaths:
-            path = Path(filepath)
+            path = Path(str(filepath))
             if (not path.exists() or not path.is_file()):
                 nonExistentFiles.append(str(path))
         return nonExistentFiles
@@ -91,7 +91,7 @@ class FileUtil:
         :param path: the path (type: str)
         :return:
         """
-        p = Path(path)
+        p = Path(str(path))
         p.mkdir(parents=True, exist_ok=True)
 
     @staticmethod
@@ -119,7 +119,7 @@ class FileUtil:
             user_want_to_delete = user_input in ['Y', 'YES']    # if user enter invalid input, it will be assumed as a 'NO'
 
         if (forceDelete or user_want_to_delete):
-            shutil.rmtree(Path(path))
+            shutil.rmtree(Path(str(path)))
         else:
             if (raiseErrorIfNotDeleted):
                 raise ValueError(f"User rejected to delete the path '{path}'")
@@ -139,7 +139,7 @@ class FileUtil:
         :param forceDelete: if true, the function will not prompt for user's confirmation for deleting the file
         :return:
         """
-        p = Path(path)
+        p = Path(str(path))
         if (not p.exists() or not p.is_file()):
             if (raiseErrorIfNotDeleted):
                 raise ValueError(f"The path '{p}' is not a file or doesn't exist and would not be deleted")
@@ -179,7 +179,7 @@ class FileUtil:
             raise ValueError(f"The operating system '{platform.system()}' is not supported " +
                              f"for the method '{FileUtil.getFileExtension.__name__}'")
 
-        filePath = Path(pathname)
+        filePath = Path(str(pathname))
 
         # Make sure file exists in the file system
         if (not filePath.exists()):
@@ -209,7 +209,7 @@ class FileUtil:
         """
         if (len(pathArgs) <= 0):
             return ""
-        joinedPath = Path(pathArgs[0])
+        joinedPath = Path(str(pathArgs[0]))
         for i in range(1,len(pathArgs)):
             joinedPath = joinedPath / pathArgs[i].strip("/\\")
         return str(joinedPath)
@@ -231,7 +231,7 @@ class FileUtil:
         :param pathname: str
         :return: tuple of strs
         """
-        path = Path(pathname)
+        path = Path(str(pathname))
         return path.parts
 
     @staticmethod
@@ -250,7 +250,7 @@ class FileUtil:
         :param path:
         :return:
         """
-        return str(Path(path).resolve())
+        return str(Path(str(path)).resolve())
 
     @staticmethod
     def getDirectoryOfFile(filepath: str) -> str:
@@ -268,7 +268,7 @@ class FileUtil:
         :param filepath:
         :return:
         """
-        p = Path(filepath)
+        p = Path(str(filepath))
         return str(p.parents[0])
 
 

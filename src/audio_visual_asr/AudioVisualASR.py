@@ -20,6 +20,7 @@ from src.utility.VideoUtil import VideoUtil
 from src.utility.AudioUtil import AudioUtil
 from src.audio_visual_asr.dataset.LRW.LRW_Utility import LRW_Utility
 from src.audio_visual_asr.model.AudioVisualModel import ConcatGRU, AudioRecognition, LipReading
+from src.audio_visual_asr.data_preprocess.LRW_DataPreprocessor import LRW_DataPreprocessor
 
 # Global Constants
 CURR_SOURCE_DIR_PATH = FileUtil.getDirectoryOfFile(FileUtil.resolvePath(__file__))
@@ -54,11 +55,11 @@ class AudioVisualASR:
 
         # reload trained models
         if (not FileUtil.fileExists(audioModelPath)):
-            raise ValueError(f"Failed to find audio model at {audioModelPath}")
+            raise ValueError(f"Failed to find audio model at location '{audioModelPath}'")
         if (not FileUtil.fileExists(videoModelPath)):
-            raise ValueError(f"Failed to find video model at {videoModelPath}")
+            raise ValueError(f"Failed to find video model at location '{videoModelPath}'")
         if (not FileUtil.fileExists(concatModelPath)):
-            raise ValueError(f"Failed to find concat model at {concatModelPath}")
+            raise ValueError(f"Failed to find concat model at location '{concatModelPath}'")
         TorchUtil.reloadModel(self.audio_model, logger, audioModelPath)
         TorchUtil.reloadModel(self.video_model, logger, videoModelPath)
         TorchUtil.reloadModel(self.concat_model, logger, concatModelPath)
@@ -108,10 +109,14 @@ class AudioVisualASR:
         predictionIdx = preds.item()
         return self.words[predictionIdx]
 
+    def predictFromMP4(self, MP4Filepath, useGPU=False) -> str:
+        if (not FileUtil.fileExists(MP4Filepath)):
+            raise ValueError(f"Cannot find video file at '{MP4Filepath}'")
 
-from src.audio_visual_asr.data_preprocess.LRW_DataPreprocessor import LRW_DataPreprocessor
+        audioData, videoData = LRW_DataPreprocessor.preprocessSingleFile(MP4Filepath)
+        return self.predict(audioData, videoData, useGPU=useGPU)
+
 if __name__ == "__main__":
     test_file = r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\LRW\ABUSE\test\ABUSE_00001.mp4"
     audioVisualASR = AudioVisualASR(1,2,3,4)
-    predictedWord = audioVisualASR.predict(*LRW_DataPreprocessor.preprocessSingleFile(test_file))
-    print(predictedWord)
+    print(audioVisualASR.predictFromMP4(test_file))
