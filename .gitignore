@@ -1,5 +1,7 @@
 # Others
 saved_models/
+src/tts/models
+src/tts/TTS
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
