@@ -6,6 +6,8 @@ Description: This is the main execution file that starts the training using the 
 # Python Standard Libraries
 import os
 import time
+import argparse
+
 
 # Third Party Libraries
 import torch
@@ -21,17 +23,17 @@ from src.utility.FileUtil import FileUtil
 from src.utility.TorchUtil import TorchUtil
 from src.utility.LoggerUtil import LoggerUtil
 from src.utility.VideoUtil import VideoUtil
-from src.model.AudioVisualModel import ConcatGRU, AudioRecognition, LipReading
-from src.audio_visual_asr.dataset import LRW_AudioVisualDataset
-from src.audio_visual_asr.lr_scheduler import AdjustLR
+from src.audio_visual_asr.model.AudioVisualModel import ConcatGRU, AudioRecognition, LipReading
+from src.audio_visual_asr.dataset.LRW.LRW_AudioVisualDataset import LRW_AudioVisualDataset
+from src.audio_visual_asr.lr_scheduler.AdjustLR import AdjustLR
 
 
 # Global Constants
-# currSourcePath = Path(__file__).resolve()
+CURR_SOURCE_DIR_PATH = FileUtil.getDirectoryOfFile(FileUtil.resolvePath(__file__))
 
 # Source Code
 def get_model_save_path(config):
-    base_save_path = "../saved_models/audioVisualModels"
+    base_save_path = FileUtil.joinPath(CURR_SOURCE_DIR_PATH, "_SAVED_MODELS", "AudioVisual")
     isEveryFrame = config["every-frame"]
     mode = config["mode"]
 
@@ -331,10 +333,19 @@ def run_model(config, use_gpu):
             test(audio_model, video_model, concat_model, dset_loaders["val"], criterion, epoch, config, logger, use_gpu)
 
 
-def main():
-    # reading configuration
-    configFilePath = ConfigUtil.getConfigPath()
-    audioVisualConfig = ConfigUtil.readAudioVisualConfig(configFilePath)
+def getAudioVisualConfig():
+    # read audio visual section in "train_config.json"
+    parser = argparse.ArgumentParser(description='Train Audio Visual ASR Model')
+    _DEFAULT_CONFIG_PATH = FileUtil.joinPath(CURR_SOURCE_DIR_PATH, "train_config.json")
+    parser.add_argument('--config', default=_DEFAULT_CONFIG_PATH, help='path to "train_config.json" file')
+    args =parser.parse_args()
+    config = ConfigUtil.readAudioVisualTrainConfig(args.config)
+    return config
+
+
+def trainAudioVisual():
+    # get audio visual train_config
+    audioVisualConfig = getAudioVisualConfig()
 
     # setup GPU
     os.environ['CUDA_VISIBLE_DEVICES'] = '0'
@@ -352,7 +363,6 @@ def main():
     run_model(audioVisualConfig, use_gpu)
 
 
-
 # Main Execution Block
 if __name__ == "__main__":
-    main()
+    trainAudioVisual()

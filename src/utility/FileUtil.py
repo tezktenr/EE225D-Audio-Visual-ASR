@@ -252,6 +252,25 @@ class FileUtil:
         """
         return str(Path(path).resolve())
 
+    @staticmethod
+    def getDirectoryOfFile(filepath: str) -> str:
+        """
+        Get the parent directory of a given path
+            =======================================================
+            ** Here is an Example:
+            =======================================================
+            **  filepath = "/tmp/dir1/file.txt"
+            **  parentPath = getDirectoryOfFile(filepath)
+            **  print(parentPath)
+            **  >>> parentPath = "/tmp/dir1"
+            =======================================================
+        ------------------------------------------------------------
+        :param filepath:
+        :return:
+        """
+        p = Path(filepath)
+        return str(p.parents[0])
+
 
 
 

@@ -15,7 +15,7 @@ import cv2
 # Project Module
 from src.utility.FileUtil import FileUtil
 from src.utility.LoggerUtil import LoggerUtil
-from src.audio_visual_asr.dataset import LRW_Utility
+from src.audio_visual_asr.dataset.LRW.LRW_Utility import LRW_Utility
 
 
 
