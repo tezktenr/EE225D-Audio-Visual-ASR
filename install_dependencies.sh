@@ -1,12 +1,18 @@
+#!/bin/bash
+set -e
+
 echo '============================================================'
 echo 'Starting to Install and Configure Dependency for the Project'
 echo '============================================================'
+apt update
 
 echo
 echo 'Creating Python Virtual Environment'
 echo '-----------------------------------'
-python -m venv ./venv
-source ./venv/activate
+apt install python3.8
+apt install python3.8-venv
+python3.8 -m venv ./venv
+. ./venv/activate
 
 echo
 echo 'Installing Python "Requirements.txt"'
@@ -16,7 +22,6 @@ pip install -r requirements.txt
 echo
 echo 'Installing Espeak'
 echo '-----------------'
-apt update
 apt install espeak
 
 echo
@@ -34,19 +39,20 @@ wget -4 https://drive.google.com/uc?id=11oY3Tv0kQtxK_JPgxrfesa99maVXHNxU -O "$TT
 echo
 echo 'Modifying TTS Configuration'
 echo '---------------------------'
-sed -i "s/\"stats_path\": .*/\"stats_path\": \"$TTS_MODEL_PATH\/scale_stats.npy\"/" "$TTS_MODEL_PATH/tts_config.json"
-sed -i "s/\"stats_path\": .*/\"stats_path\": \"$TTS_MODEL_PATH\/scale_stats.npy\"/" "$TTS_MODEL_PATH/config_vocoder.json"
+sed -i "s/\"stats_path\": .*/\"stats_path\": \"${TTS_MODEL_PATH@Q}\/scale_stats.npy\"/" "$TTS_MODEL_PATH/tts_config.json"
+sed -i "s/\"stats_path\": .*/\"stats_path\": \"${TTS_MODEL_PATH@Q}\/scale_stats.npy\"/" "$TTS_MODEL_PATH/config_vocoder.json"
 
 echo
 echo 'Installing TTS'
 echo '--------------'
 TTS_PATH="./src/tts/TTS"
 mkdir -p "$TTS_PATH"
+apt install git
 git clone https://github.com/coqui-ai/TTS "$TTS_PATH"
 (
   cd "$TTS_PATH"
   git checkout b1935c97
-  python setup.py install
+  python3.8 setup.py install
 )
 
 
