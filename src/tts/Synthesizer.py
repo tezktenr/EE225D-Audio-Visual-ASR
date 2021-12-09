@@ -16,10 +16,10 @@ class Synthesizer:
         # runtime settings
         self.use_cuda = False
         # model paths
-        self.TTS_MODEL = "./tts/models/tts_model.pth.tar"
-        self.TTS_CONFIG = "./tts/models/config.json"
-        self.VOCODER_MODEL = "./tts/models/vocoder_model.pth.tar"
-        self.VOCODER_CONFIG = "./tts/models/config_vocoder.json"
+        self.TTS_MODEL = "./src/tts/models/tts_model.pth.tar"
+        self.TTS_CONFIG = "./src/tts/models/config.json"
+        self.VOCODER_MODEL = "./src/tts/models/vocoder_model.pth.tar"
+        self.VOCODER_CONFIG = "./src/tts/models/config_vocoder.json"
         # load configs
         self.TTS_CONFIG = load_config(self.TTS_CONFIG)
         self.VOCODER_CONFIG = load_config(self.VOCODER_CONFIG)

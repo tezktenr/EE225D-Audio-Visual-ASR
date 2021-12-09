@@ -1,4 +1,4 @@
-from tts.Synthesizer import Synthesizer as Syn
+from src.tts.Synthesizer import Synthesizer as Syn
 
 syn = Syn()
 
