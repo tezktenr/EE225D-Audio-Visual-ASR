@@ -33,6 +33,9 @@ class Synthesizer:
     TTS_MODEL_PATH = FileUtil.joinPath(CURR_SOURCE_DIR_PATH, "_TTS_MODELS")
 
     def __init__(self, logger, use_cuda=False):
+        # runtime settings
+        self.use_cuda = use_cuda
+
         # logger
         self.logger = logger
 
@@ -57,10 +60,10 @@ class Synthesizer:
         self.num_chars = len(phonemes) if self.TTS_CONFIG.use_phonemes else len(symbols)
         self.model = setup_model(self.num_chars, len(self.speakers), self.TTS_CONFIG)
         # load model state
-        self.cp =  torch.load(self.TTS_MODEL, map_location=torch.device('cpu'))
+        self.cp = torch.load(self.TTS_MODEL, map_location=torch.device('cpu'))
         # load the model
         self.model.load_state_dict(self.cp['model'])
-        if use_cuda:
+        if self.use_cuda:
             self.model.cuda()
         self.model.eval()
         # set model stepsize
@@ -73,7 +76,7 @@ class Synthesizer:
         self.vocoder_model.inference_padding = 0
 
         self.ap_vocoder = AudioProcessor(**self.VOCODER_CONFIG['audio'])
-        if use_cuda:
+        if self.use_cuda:
             self.vocoder_model.cuda()
         self.vocoder_model.eval()
 
