@@ -12,7 +12,7 @@ echo '-----------------------------------'
 apt install python3.8
 apt install python3.8-venv
 python3.8 -m venv ./venv
-. ./venv/activate
+. ./venv/bin/activate
 
 echo
 echo 'Installing Python "Requirements.txt"'
@@ -28,7 +28,7 @@ echo
 echo 'Fetching TTS Models'
 echo '-------------------'
 apt install wget
-TTS_MODEL_PATH='./src/tts/_TTS_MODELS'
+TTS_MODEL_PATH='.\/src\/tts\/_TTS_MODELS'
 mkdir -p "$TTS_MODEL_PATH"
 wget -4 https://drive.google.com/uc?id=1dntzjWFg7ufWaTaFy80nRz-Tu02xWZos -O "$TTS_MODEL_PATH/tts_model.pth.tar"
 wget -4 https://drive.google.com/uc?id=18CQ6G6tBEOfvCHlPqP8EBI4xWbrr9dBc -O "$TTS_MODEL_PATH/tts_config.json"
@@ -39,8 +39,12 @@ wget -4 https://drive.google.com/uc?id=11oY3Tv0kQtxK_JPgxrfesa99maVXHNxU -O "$TT
 echo
 echo 'Modifying TTS Configuration'
 echo '---------------------------'
-sed -i "s/\"stats_path\": .*/\"stats_path\": \"${TTS_MODEL_PATH@Q}\/scale_stats.npy\"/" "$TTS_MODEL_PATH/tts_config.json"
-sed -i "s/\"stats_path\": .*/\"stats_path\": \"${TTS_MODEL_PATH@Q}\/scale_stats.npy\"/" "$TTS_MODEL_PATH/config_vocoder.json"
+sed -i "s/\"stats_path\": .*/\"stats_path\": \"$TTS_MODEL_PATH\/scale_stats.npy\"/" "$TTS_MODEL_PATH/tts_config.json"
+echo '"tts_config.json" is modified as follow:'
+cat $TTS_MODEL_PATH/tts_config.json
+sed -i "s/\"stats_path\": .*/\"stats_path\": \"$TTS_MODEL_PATH\/scale_stats.npy\"/" "$TTS_MODEL_PATH/config_vocoder.json"
+echo '"config_vocoder.json" is modified as follow:'
+cat $TTS_MODEL_PATH/config_vocoder.json
 
 echo
 echo 'Installing TTS'
