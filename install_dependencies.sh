@@ -9,6 +9,8 @@ apt update
 echo
 echo 'Creating Python Virtual Environment'
 echo '-----------------------------------'
+apt install software-properties-common
+add-apt-repository ppa:deadsnakes
 apt install python3.8
 apt install python3.8-venv
 python3.8 -m venv ./venv
