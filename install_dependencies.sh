@@ -9,29 +9,32 @@ apt update
 echo
 echo 'Installing Python 3.8'
 echo '---------------------'
-{
-  python3.8
-} || {
-  echo 'Did not detect Python 3.8 on this machine'
-  echo 'Trying to install Python 3.8 from apt...'
-  apt install python3.8
-} || {
-  echo 'Failed to install Python 3.8 directly'
-  python3_8_url='https://www.python.org/ftp/python/3.8.12/Python-3.8.12.tar.xz'
-  echo "Trying to install Python 3.8 from $python3_8_url..."
-  wget $python3_8_url -O /usr/local/src/Python-3.8.12.tar.xz
-  tar -xf /usr/local/src/Python-3.8.12.tar.xz
-  mv /usr/local/src/Python3.8.12 /opt/Python3.8.12
-  apt install build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libsqlite3-dev libreadline-dev libffi-dev curl libbz2-dev -y
-  cd /opt/Python3.8.12/
-  ./configure --enable-optimizations --enable-shared
-  make -j 6
-  make altinstall
-  ldconfig /opt/Python3.8.12
-} || {
-  echo 'Failed to install Python 3.8'
-  exit 1
-}
+(
+  {
+    python3.8
+  } || {
+    echo 'Did not detect Python 3.8 on this machine'
+    echo 'Trying to install Python 3.8 from apt...'
+    apt install python3.8
+  } || {
+    echo 'Failed to install Python 3.8 directly'
+    python3_8_url='https://www.python.org/ftp/python/3.8.12/Python-3.8.12.tar.xz'
+    echo "Trying to install Python 3.8 from $python3_8_url..."
+    apt install wget &&
+    wget $python3_8_url -O /usr/local/src/Python-3.8.12.tar.xz &&
+    tar -xf /usr/local/src/Python-3.8.12.tar.xz -C /opt/ &&
+    apt install build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libsqlite3-dev libreadline-dev libffi-dev curl libbz2-dev liblzma-dev -y &&
+    cd /opt/Python-3.8.12/ &&
+    ./configure --enable-optimizations --enable-shared &&
+    make -j 6 &&
+    make altinstall &&
+    ldconfig /opt/Python-3.8.12
+  } || {
+    echo 'All attempts to install Python 3.8 failed'
+    echo 'Please install Python 3.8 manually!!'
+    exit 1
+  }
+)
 
 
 echo
