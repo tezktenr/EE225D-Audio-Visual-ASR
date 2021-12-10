@@ -4,7 +4,9 @@ Description: This is the main execution file that starts the training using the 
 """
 
 # Python Standard Libraries
+import sys
 import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 import time
 import argparse
 

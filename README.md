@@ -14,7 +14,7 @@ This project aims to perform noise reduction with the help of both Audio Visual 
 
 ## Installing Project Dependencies
 
-> Note: The automated script only works with Linux System in general. You would need to manually install dependencies on other OS. 
+> Note: The automated script only works with Linux Debian System in general. You would need to manually install dependencies on other OS. 
 
 We provide a bash script "install_dependencies.sh", which should work on most Linux system, that helps to automate the process of installing dependencies.
 

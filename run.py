@@ -13,6 +13,7 @@ from src.tts.Synthesizer import Synthesizer
 
 # Global Constants
 
+
 # Source Code
 def setup_logger():
     logger = LoggerUtil.getLogger("run")
