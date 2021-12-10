@@ -1,31 +1,54 @@
+"""
+Filename: Synthesizer.py
+Description: This is a file that contains the class 'Synthesizer' for TTS Speech Synthesis
+"""
+
+# Python Standard Libraries
 import os
-import torch
 import time
 
+# Third Party Libraries
+import torch
+import scipy.io.wavfile
 from TTS.utils.generic_utils import setup_model
 from TTS.utils.io import load_config
 from TTS.utils.text.symbols import symbols, phonemes
 from TTS.utils.audio import AudioProcessor
 from TTS.utils.synthesis import synthesis
 from TTS.vocoder.utils.generic_utils import setup_generator
-import scipy.io.wavfile
+
+# Project Module
+from src.utility.FileUtil import FileUtil
+
+# Global Constants
+CURR_SOURCE_DIR_PATH = FileUtil.getDirectoryOfFile(FileUtil.resolvePath(__file__))
 
 
+# Source Code
 class Synthesizer:
-    def __init__(self):
-        # runtime settings
-        self.use_cuda = False
-        # model paths
-        self.TTS_MODEL = "./src/tts/models/tts_model.pth.tar"
-        self.TTS_CONFIG = "./src/tts/models/config.json"
-        self.VOCODER_MODEL = "./src/tts/models/vocoder_model.pth.tar"
-        self.VOCODER_CONFIG = "./src/tts/models/config_vocoder.json"
+    """
+    This class is responsible for TTS Speech Synthesis
+    """
+
+    TTS_MODEL_PATH = FileUtil.joinPath(CURR_SOURCE_DIR_PATH, "_TTS_MODELS")
+
+    def __init__(self, logger, use_cuda=False):
+        # logger
+        self.logger = logger
+
+        # model and configuration paths
+        self.TTS_MODEL = FileUtil.joinPath(Synthesizer.TTS_MODEL_PATH, "tts_model.pth.tar")
+        self.TTS_CONFIG = FileUtil.joinPath(Synthesizer.TTS_MODEL_PATH, "tts_config.json")
+        self.VOCODER_MODEL = FileUtil.joinPath(Synthesizer.TTS_MODEL_PATH, "vocoder_model.pth.tar")
+        self.VOCODER_CONFIG = FileUtil.joinPath(Synthesizer.TTS_MODEL_PATH, "config_vocoder.json")
+
         # load configs
         self.TTS_CONFIG = load_config(self.TTS_CONFIG)
         self.VOCODER_CONFIG = load_config(self.VOCODER_CONFIG)
+
         # load the audio processor
-        print(self.TTS_CONFIG.audio)
         self.ap = AudioProcessor(**self.TTS_CONFIG.audio)
+
         # LOAD TTS MODEL
         # multi speaker
         self.speaker_id = None
@@ -37,7 +60,7 @@ class Synthesizer:
         self.cp =  torch.load(self.TTS_MODEL, map_location=torch.device('cpu'))
         # load the model
         self.model.load_state_dict(self.cp['model'])
-        if self.use_cuda:
+        if use_cuda:
             self.model.cuda()
         self.model.eval()
         # set model stepsize
@@ -50,12 +73,14 @@ class Synthesizer:
         self.vocoder_model.inference_padding = 0
 
         self.ap_vocoder = AudioProcessor(**self.VOCODER_CONFIG['audio'])
-        if self.use_cuda:
+        if use_cuda:
             self.vocoder_model.cuda()
         self.vocoder_model.eval()
 
 
     def tts(self, model, text, CONFIG, use_cuda, ap, use_gl):
+        self.logger.info(f"Starting to synthesize the text '{text}'")
+
         t_1 = time.time()
         waveform, alignment, mel_spec, mel_postnet_spec, stop_tokens, inputs = synthesis(model, text, CONFIG, use_cuda, ap, self.speaker_id, style_wav=None,
                                                                                 truncated=False, enable_eos_bos_chars=CONFIG.enable_eos_bos_chars)
@@ -67,10 +92,11 @@ class Synthesizer:
         waveform = waveform.numpy()
         rtf = (time.time() - t_1) / (len(waveform) / self.ap.sample_rate)
         tps = (time.time() - t_1) / len(waveform)
-        print(waveform.shape)
-        print(" > Run-time: {}".format(time.time() - t_1))
-        print(" > Real-time factor: {}".format(rtf))
-        print(" > Time per step: {}".format(tps))
+
+        self.logger.info(f"Finished Synthesis for text '{text}'. Waveform Shape is {waveform.shape}")
+        self.logger.info(f" > Synthesis Run-time: {time.time() - t_1}")
+        self.logger.info(f" > Synthesis Real-time factor: {rtf}")
+        self.logger.info(f" > Synthesis Time per step: {tps}")
         return alignment, mel_postnet_spec, stop_tokens, waveform
 
 
@@ -78,5 +104,5 @@ class Synthesizer:
         align, spec, stop_tokens, wav = self.tts(self.model, text, self.TTS_CONFIG, self.use_cuda, self.ap, use_gl=False)
         if wavpath:
             # Generate the .wav file
-            scipy.io.wavfile.write("output.wav", self.ap.sample_rate, wav)
+            scipy.io.wavfile.write(wavpath, self.ap.sample_rate, wav)
         return wav, self.ap.sample_rate

@@ -236,7 +236,7 @@ def run_model(config, use_gpu):
     # create the directory for saving trained models and log files
     save_path = get_model_save_path(config)
     log_file_path = FileUtil.joinPath(save_path, f'{config["mode"]}_{config["lr"]}.txt')
-    logger = LoggerUtil.getLogger(log_file_path, "videoModelLogger")
+    logger = LoggerUtil.getLogger("videoModelLogger", logFilePath=log_file_path)
     logger.info("\n" + "-" * 75)
     LoggerUtil.logCurrentTime(logger)
 

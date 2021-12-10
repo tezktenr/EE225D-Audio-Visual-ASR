@@ -52,7 +52,6 @@ source ./venv/bin/activate
 pip install -r requirements.txt
 ```
 
-
 #### 4. Install TTS
 ```
 cd ./src/tts/TTS
@@ -60,8 +59,6 @@ git clone https://github.com/coqui-ai/TTS
 git checkout b1935c97
 python setup.py install
 ```
-
-
 
 #### 5. Fetch TTS Configuration
 

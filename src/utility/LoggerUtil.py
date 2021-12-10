@@ -25,7 +25,7 @@ class LoggerUtil:
                         "which should not be instantiated")
 
     @staticmethod
-    def getLogger(logFilePath, loggerName):
+    def getLogger(loggerName, logFilePath=None):
         logger = logging.getLogger(loggerName)
         logger.setLevel(logging.INFO)
 
@@ -33,10 +33,11 @@ class LoggerUtil:
         logFormatter = logging.Formatter(fmt='[%(levelname)s] %(message)s')
 
         # setup logging to the LOG FILE
-        fh = logging.FileHandler(logFilePath, mode='a')
-        fh.setLevel(logging.INFO)
-        fh.setFormatter(logFormatter)
-        logger.addHandler(fh)
+        if logFilePath:
+            fh = logging.FileHandler(logFilePath, mode='a')
+            fh.setLevel(logging.INFO)
+            fh.setFormatter(logFormatter)
+            logger.addHandler(fh)
 
         # setup logging to the CONSOLE
         console = logging.StreamHandler()

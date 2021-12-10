@@ -31,7 +31,7 @@ class AudioVisualASR:
     This class is used to perform audio visual speech recognition
     """
 
-    def __init__(self, audioModelPath, videoModelPath, concatModelPath, logger,
+    def __init__(self, audioModelPath, videoModelPath, concatModelPath, logger, blankModel=False,
                  labelsSortedPath = FileUtil.joinPath(CURR_SOURCE_DIR_PATH, "label_sorted.txt"),
                  mode="finetuneGRU", nClasses=500, isEveryFrame=False):
         # rememeber config
@@ -54,15 +54,16 @@ class AudioVisualASR:
             raise ValueError(f"Unknown mode {mode} for concat_model")
 
         # reload trained models
-        if (not FileUtil.fileExists(audioModelPath)):
-            raise ValueError(f"Failed to find audio model at location '{audioModelPath}'")
-        if (not FileUtil.fileExists(videoModelPath)):
-            raise ValueError(f"Failed to find video model at location '{videoModelPath}'")
-        if (not FileUtil.fileExists(concatModelPath)):
-            raise ValueError(f"Failed to find concat model at location '{concatModelPath}'")
-        TorchUtil.reloadModel(self.audio_model, logger, audioModelPath)
-        TorchUtil.reloadModel(self.video_model, logger, videoModelPath)
-        TorchUtil.reloadModel(self.concat_model, logger, concatModelPath)
+        if not blankModel:
+            if (not FileUtil.fileExists(audioModelPath)):
+                raise ValueError(f"Failed to find audio model at location '{audioModelPath}'")
+            if (not FileUtil.fileExists(videoModelPath)):
+                raise ValueError(f"Failed to find video model at location '{videoModelPath}'")
+            if (not FileUtil.fileExists(concatModelPath)):
+                raise ValueError(f"Failed to find concat model at location '{concatModelPath}'")
+            TorchUtil.reloadModel(self.audio_model, logger, audioModelPath)
+            TorchUtil.reloadModel(self.video_model, logger, videoModelPath)
+            TorchUtil.reloadModel(self.concat_model, logger, concatModelPath)
 
         # set all models to non-training mode
         self.audio_model.eval()
@@ -115,6 +116,7 @@ class AudioVisualASR:
 
         audioData, videoData = LRW_DataPreprocessor.preprocessSingleFile(MP4Filepath)
         return self.predict(audioData, videoData, useGPU=useGPU)
+
 
 if __name__ == "__main__":
     test_file = r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\LRW\ABUSE\test\ABUSE_00001.mp4"
