@@ -11,7 +11,7 @@ echo 'Installing Python 3.8'
 echo '---------------------'
 (
   {
-    python3.8
+    python3.8 --version
   } || {
     echo 'Did not detect Python 3.8 on this machine'
     echo 'Trying to install Python 3.8 from apt...'
@@ -40,8 +40,9 @@ echo '---------------------'
 echo
 echo 'Creating Python Virtual Environment'
 echo '-----------------------------------'
-python3.8 -m venv ./venv
-. ./venv/bin/activate
+python3.8 -m venv ./venv &&
+. ./venv/bin/activate &&
+echo 'Activation of venv SUCCESS'
 
 echo
 echo 'Installing Python "Requirements.txt"'
