@@ -216,7 +216,7 @@ class AudioRecognition(nn.Module):
         if self.use_gpu:
             super(AudioRecognition, self).cuda()
             self.resnet18.setGPU(self.use_gpu)
-            self.gru.setGPU(self)
+            self.gru.setGPU(self.use_gpu)
 
     def forward(self, x):
         x = x.view(-1, 1, x.size(1))
