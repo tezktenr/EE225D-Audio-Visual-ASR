@@ -182,7 +182,7 @@ class AudioRecognition(nn.Module):
         )
 
         # resnet
-        self.resnet18 = AudioResNet(AudioBasicBlock, [2, 2, 2, 2], num_classes=self.inputDim, use_gpu=self.use_gpu)
+        self.resnet18 = AudioResNet(AudioBasicBlock, [2, 2, 2, 2], num_classes=self.inputDim)
 
         # backend_conv
         self.backend_conv1 = nn.Sequential(
@@ -203,7 +203,7 @@ class AudioRecognition(nn.Module):
         )
 
         # backend_gru
-        self.gru = GRU(self.inputDim, self.hiddenDim, self.nLayers, self.nClasses, self.every_frame, use_gpu=self.use_gpu)
+        self.gru = GRU(self.inputDim, self.hiddenDim, self.nLayers, self.nClasses, self.every_frame)
 
         # initialize
         self._initialize_weights()
