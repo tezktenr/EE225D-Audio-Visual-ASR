@@ -23,10 +23,6 @@ class GRU(nn.Module):
 
     def __init__(self, input_size, hidden_size, num_layers, num_classes, every_frame=True, use_gpu=False):
         super(GRU, self).__init__()
-
-        # GPU settings
-        self.setGPU(use_gpu)
-
         # GRU model details
         self.hidden_size = hidden_size
         self.num_layers = num_layers
@@ -34,6 +30,9 @@ class GRU(nn.Module):
 
         self.gru = nn.GRU(input_size, hidden_size, num_layers, batch_first=True, bidirectional=True)
         self.fc = nn.Linear(hidden_size*2, num_classes)
+
+        # GPU settings
+        self.setGPU(use_gpu)
     
     def setGPU(self, use_gpu):
         self.use_gpu = use_gpu
@@ -66,10 +65,6 @@ class AudioBasicBlock(nn.Module):
 
     def __init__(self, inplanes, planes, stride=1, downsample=None, use_gpu=False):
         super(AudioBasicBlock, self).__init__()
-
-        # GPU settings
-        self.setGPU(use_gpu)
-
         # AudioBasicBlock model details
         self.conv1 = AudioBasicBlock.conv3x3(inplanes, planes, stride)
         self.bn1 = nn.BatchNorm1d(planes)
@@ -78,6 +73,9 @@ class AudioBasicBlock(nn.Module):
         self.bn2 = nn.BatchNorm1d(planes)
         self.downsample = downsample
         self.stride = stride
+
+        # GPU settings
+        self.setGPU(use_gpu)
     
     def setGPU(self, use_gpu):
         self.use_gpu = use_gpu
@@ -108,10 +106,6 @@ class AudioResNet(nn.Module):
 
     def __init__(self, block, layers, num_classes=1000, use_gpu=False):
         super(AudioResNet, self).__init__()
-
-        # GPU settings
-        self.setGPU(use_gpu)
-
         # AudioResNet model details
         self.inplanes = 64
         self.layer1 = self._make_layer(block, 64, layers[0])
@@ -127,6 +121,9 @@ class AudioResNet(nn.Module):
             elif isinstance(m, nn.BatchNorm1d):
                 m.weight.data.fill_(1)
                 m.bias.data.zero_()
+
+        # GPU settings
+        self.setGPU(use_gpu)
 
     def setGPU(self, use_gpu):
         self.use_gpu = use_gpu
@@ -168,10 +165,6 @@ class AudioResNet(nn.Module):
 class AudioRecognition(nn.Module):
     def __init__(self, mode, inputDim=256, hiddenDim=512, nClasses=500, frameLen=29, every_frame=True, use_gpu=False):
         super(AudioRecognition, self).__init__()
-
-        # GPU settings
-        self.setGPU(use_gpu)
-
         # AudioRecognition model details
         self.mode = mode
         self.inputDim = inputDim
@@ -214,6 +207,9 @@ class AudioRecognition(nn.Module):
 
         # initialize
         self._initialize_weights()
+
+        # GPU settings
+        self.setGPU(use_gpu)
     
     def setGPU(self, use_gpu):
         self.use_gpu = use_gpu
@@ -288,10 +284,6 @@ class VideoBasicBlock(nn.Module):
 
     def __init__(self, inplanes, planes, stride=1, downsample=None, use_gpu=False):
         super(VideoBasicBlock, self).__init__()
-
-        # GPU settings
-        self.setGPU(use_gpu)
-
         # VideoBasicBlock model details
         self.conv1 = VideoBasicBlock.conv3x3(inplanes, planes, stride)
         self.bn1 = nn.BatchNorm2d(planes)
@@ -300,6 +292,9 @@ class VideoBasicBlock(nn.Module):
         self.bn2 = nn.BatchNorm2d(planes)
         self.downsample = downsample
         self.stride = stride
+
+        # GPU settings
+        self.setGPU(use_gpu)
     
     def setGPU(self, use_gpu):
         self.use_gpu = use_gpu
@@ -332,10 +327,6 @@ class VideoResNet(nn.Module):
 
     def __init__(self, block, layers, num_classes=1000, use_gpu=False):
         super(VideoResNet, self).__init__()
-
-        # GPU settings
-        self.setGPU(use_gpu)
-
         # VideoResNet model details
         self.inplanes = 64
         self.layer1 = self._make_layer(block, 64, layers[0])
@@ -355,6 +346,9 @@ class VideoResNet(nn.Module):
             elif isinstance(m, nn.BatchNorm1d):
                 m.weight.data.fill_(1)
                 m.bias.data.zero_()
+
+        # GPU settings
+        self.setGPU(use_gpu)
     
     def setGPU(self, use_gpu):
         self.use_gpu = use_gpu
@@ -395,10 +389,6 @@ class VideoResNet(nn.Module):
 class LipReading(nn.Module):
     def __init__(self, mode, inputDim=256, hiddenDim=512, nClasses=500, frameLen=29, every_frame=True, use_gpu=False):
         super(LipReading, self).__init__()
-
-        # GPU settings
-        self.setGPU(use_gpu)
-
         # LipReading model details
         self.mode = mode
         self.inputDim = inputDim
@@ -441,6 +431,9 @@ class LipReading(nn.Module):
 
         # initialize
         self._initialize_weights()
+
+        # GPU settings
+        self.setGPU(use_gpu)
 
     def setGPU(self, use_gpu):
         self.use_gpu = use_gpu
@@ -510,16 +503,15 @@ class ConcatGRU(nn.Module):
 
     def __init__(self, inputDim=2048, hiddenDim=512, nLayers=2, nClasses=500, every_frame=True, use_gpu=False):
         super(ConcatGRU, self).__init__()
-
-        # GPU settings
-        self.setGPU(use_gpu)
-
         # ConcatGRU model details
         self.hidden_size = hiddenDim
         self.num_layers = nLayers
         self.every_frame = every_frame
         self.gru = nn.GRU(inputDim, hiddenDim, nLayers, batch_first=True, bidirectional=True)
         self.fc = nn.Linear(hiddenDim*2, nClasses)
+
+        # GPU settings
+        self.setGPU(use_gpu)
 
     def setGPU(self, use_gpu):
         self.use_gpu = use_gpu
