@@ -21,17 +21,29 @@ class GRU(nn.Module):
     multi-layer gated recurrent unit (GRU) RNN
     """
 
-    def __init__(self, input_size, hidden_size, num_layers, num_classes, every_frame=True):
+    def __init__(self, input_size, hidden_size, num_layers, num_classes, every_frame=True, use_gpu=False):
         super(GRU, self).__init__()
+
+        # GPU settings
+        self.setGPU(use_gpu)
+
+        # GRU model details
         self.hidden_size = hidden_size
         self.num_layers = num_layers
         self.every_frame = every_frame
 
         self.gru = nn.GRU(input_size, hidden_size, num_layers, batch_first=True, bidirectional=True)
         self.fc = nn.Linear(hidden_size*2, num_classes)
+    
+    def setGPU(self, use_gpu):
+        self.use_gpu = use_gpu
+        if self.use_gpu:
+            super(GRU, self).cuda()
 
     def forward(self, x):
         h0 = Variable(torch.zeros(self.num_layers*2, x.size(0), self.hidden_size))
+        if self.use_gpu:
+            h0 = h0.cuda()
         out, _ = self.gru(x, h0)
         # if self.every_frame:
         #     out = self.fc(out)  # predicitions based on every time step
@@ -52,8 +64,13 @@ class AudioBasicBlock(nn.Module):
         return nn.Conv1d(in_planes, out_planes,
                          kernel_size=3, stride=stride, padding=1, bias=False)
 
-    def __init__(self, inplanes, planes, stride=1, downsample=None):
+    def __init__(self, inplanes, planes, stride=1, downsample=None, use_gpu=False):
         super(AudioBasicBlock, self).__init__()
+
+        # GPU settings
+        self.setGPU(use_gpu)
+
+        # AudioBasicBlock model details
         self.conv1 = AudioBasicBlock.conv3x3(inplanes, planes, stride)
         self.bn1 = nn.BatchNorm1d(planes)
         self.relu = nn.ReLU(inplace=True)
@@ -61,6 +78,11 @@ class AudioBasicBlock(nn.Module):
         self.bn2 = nn.BatchNorm1d(planes)
         self.downsample = downsample
         self.stride = stride
+    
+    def setGPU(self, use_gpu):
+        self.use_gpu = use_gpu
+        if self.use_gpu:
+            super(AudioBasicBlock, self).cuda()
 
     def forward(self, x):
         residual = x
@@ -84,9 +106,14 @@ class AudioResNet(nn.Module):
     RESNET for audio data
     """
 
-    def __init__(self, block, layers, num_classes=1000):
-        self.inplanes = 64
+    def __init__(self, block, layers, num_classes=1000, use_gpu=False):
         super(AudioResNet, self).__init__()
+
+        # GPU settings
+        self.setGPU(use_gpu)
+
+        # AudioResNet model details
+        self.inplanes = 64
         self.layer1 = self._make_layer(block, 64, layers[0])
         self.layer2 = self._make_layer(block, 128, layers[1], stride=2)
         self.layer3 = self._make_layer(block, 256, layers[2], stride=2)
@@ -100,6 +127,11 @@ class AudioResNet(nn.Module):
             elif isinstance(m, nn.BatchNorm1d):
                 m.weight.data.fill_(1)
                 m.bias.data.zero_()
+
+    def setGPU(self, use_gpu):
+        self.use_gpu = use_gpu
+        if self.use_gpu:
+            super(AudioResNet, self).cuda()
 
     def _make_layer(self, block, planes, blocks, stride=1):
         downsample = None
@@ -134,9 +166,13 @@ class AudioResNet(nn.Module):
 
 #######################################################################
 class AudioRecognition(nn.Module):
-    def __init__(self, mode, inputDim=256, hiddenDim=512, nClasses=500, frameLen=29, every_frame=True):
+    def __init__(self, mode, inputDim=256, hiddenDim=512, nClasses=500, frameLen=29, every_frame=True, use_gpu=False):
         super(AudioRecognition, self).__init__()
 
+        # GPU settings
+        self.setGPU(use_gpu)
+
+        # AudioRecognition model details
         self.mode = mode
         self.inputDim = inputDim
         self.hiddenDim = hiddenDim
@@ -153,7 +189,7 @@ class AudioRecognition(nn.Module):
         )
 
         # resnet
-        self.resnet18 = AudioResNet(AudioBasicBlock, [2, 2, 2, 2], num_classes=self.inputDim)
+        self.resnet18 = AudioResNet(AudioBasicBlock, [2, 2, 2, 2], num_classes=self.inputDim, use_gpu=self.use_gpu)
 
         # backend_conv
         self.backend_conv1 = nn.Sequential(
@@ -174,10 +210,17 @@ class AudioRecognition(nn.Module):
         )
 
         # backend_gru
-        self.gru = GRU(self.inputDim, self.hiddenDim, self.nLayers, self.nClasses, self.every_frame)
+        self.gru = GRU(self.inputDim, self.hiddenDim, self.nLayers, self.nClasses, self.every_frame, use_gpu=self.use_gpu)
 
         # initialize
         self._initialize_weights()
+    
+    def setGPU(self, use_gpu):
+        self.use_gpu = use_gpu
+        if self.use_gpu:
+            super(AudioRecognition, self).cuda()
+            self.resnet18.setGPU(self.use_gpu)
+            self.gru.setGPU(self)
 
     def forward(self, x):
         x = x.view(-1, 1, x.size(1))
@@ -243,8 +286,13 @@ class VideoBasicBlock(nn.Module):
         return nn.Conv2d(in_planes, out_planes,
                          kernel_size=3, stride=stride, padding=1, bias=False)
 
-    def __init__(self, inplanes, planes, stride=1, downsample=None):
+    def __init__(self, inplanes, planes, stride=1, downsample=None, use_gpu=False):
         super(VideoBasicBlock, self).__init__()
+
+        # GPU settings
+        self.setGPU(use_gpu)
+
+        # VideoBasicBlock model details
         self.conv1 = VideoBasicBlock.conv3x3(inplanes, planes, stride)
         self.bn1 = nn.BatchNorm2d(planes)
         self.relu = nn.ReLU(inplace=True)
@@ -252,6 +300,11 @@ class VideoBasicBlock(nn.Module):
         self.bn2 = nn.BatchNorm2d(planes)
         self.downsample = downsample
         self.stride = stride
+    
+    def setGPU(self, use_gpu):
+        self.use_gpu = use_gpu
+        if self.use_gpu:
+            super(VideoBasicBlock, self).cuda()
 
     def forward(self, x):
         residual = x
@@ -277,9 +330,14 @@ class VideoResNet(nn.Module):
     RESNET for video data
     """
 
-    def __init__(self, block, layers, num_classes=1000):
-        self.inplanes = 64
+    def __init__(self, block, layers, num_classes=1000, use_gpu=False):
         super(VideoResNet, self).__init__()
+
+        # GPU settings
+        self.setGPU(use_gpu)
+
+        # VideoResNet model details
+        self.inplanes = 64
         self.layer1 = self._make_layer(block, 64, layers[0])
         self.layer2 = self._make_layer(block, 128, layers[1], stride=2)
         self.layer3 = self._make_layer(block, 256, layers[2], stride=2)
@@ -297,6 +355,11 @@ class VideoResNet(nn.Module):
             elif isinstance(m, nn.BatchNorm1d):
                 m.weight.data.fill_(1)
                 m.bias.data.zero_()
+    
+    def setGPU(self, use_gpu):
+        self.use_gpu = use_gpu
+        if self.use_gpu:
+            super(VideoResNet, self).cuda()
 
     def _make_layer(self, block, planes, blocks, stride=1):
         downsample = None
@@ -330,8 +393,13 @@ class VideoResNet(nn.Module):
 
 #######################################################################
 class LipReading(nn.Module):
-    def __init__(self, mode, inputDim=256, hiddenDim=512, nClasses=500, frameLen=29, every_frame=True):
+    def __init__(self, mode, inputDim=256, hiddenDim=512, nClasses=500, frameLen=29, every_frame=True, use_gpu=False):
         super(LipReading, self).__init__()
+
+        # GPU settings
+        self.setGPU(use_gpu)
+
+        # LipReading model details
         self.mode = mode
         self.inputDim = inputDim
         self.hiddenDim = hiddenDim
@@ -373,6 +441,14 @@ class LipReading(nn.Module):
 
         # initialize
         self._initialize_weights()
+
+    def setGPU(self, use_gpu):
+        self.use_gpu = use_gpu
+        if self.use_gpu:
+            super(LipReading, self).cuda()
+            self.resnet34.setGPU(self.use_gpu)
+            self.gru.setGPU(self.use_gpu)
+        
 
     def forward(self, x):
         x = self.frontend3D(x)
@@ -432,16 +508,28 @@ class ConcatGRU(nn.Module):
     multi-layer gated recurrent unit (GRU) RNN for concat model
     """
 
-    def __init__(self, inputDim=2048, hiddenDim=512, nLayers=2, nClasses=500, every_frame=True):
+    def __init__(self, inputDim=2048, hiddenDim=512, nLayers=2, nClasses=500, every_frame=True, use_gpu=False):
         super(ConcatGRU, self).__init__()
+
+        # GPU settings
+        self.setGPU(use_gpu)
+
+        # ConcatGRU model details
         self.hidden_size = hiddenDim
         self.num_layers = nLayers
         self.every_frame = every_frame
         self.gru = nn.GRU(inputDim, hiddenDim, nLayers, batch_first=True, bidirectional=True)
         self.fc = nn.Linear(hiddenDim*2, nClasses)
 
+    def setGPU(self, use_gpu):
+        self.use_gpu = use_gpu
+        if self.use_gpu:
+            super(ConcatGRU, self).cuda()
+
     def forward(self, x):
         h0 = Variable(torch.zeros(self.num_layers*2, x.size(0), self.hidden_size))
+        if self.use_gpu:
+            h0 = h0.cuda()
         # Forward propagate RNN
         out, _ = self.gru(x, h0)
         if self.every_frame:

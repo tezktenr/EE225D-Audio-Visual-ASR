@@ -283,6 +283,7 @@ def trainAudioOnly():
     use_gpu = torch.cuda.is_available()
     if use_gpu:
         torch.set_default_tensor_type('torch.cuda.FloatTensor')
+        raise ValueError("GPU cuda training is still an unimplemented or incomplete feature in 'trainVideoOnly.py'")
 
     # setup random seed for training data shuffling
     SEED = 1

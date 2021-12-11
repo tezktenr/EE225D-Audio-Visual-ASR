@@ -296,10 +296,13 @@ def run_model(config, use_gpu):
     mode = config["mode"]
     isEveryFrame = config["every-frame"]
 
-    audio_model = AudioRecognition(mode=mode, inputDim=512, hiddenDim=512, nClasses=nClasses, frameLen=29, every_frame=isEveryFrame)
-    video_model = LipReading(mode=mode, inputDim=256, hiddenDim=512, nClasses=nClasses, frameLen=29, every_frame=isEveryFrame)
+    audio_model = AudioRecognition(mode=mode, inputDim=512, hiddenDim=512,
+                                   nClasses=nClasses, frameLen=29, every_frame=isEveryFrame, use_gpu=use_gpu)
+    video_model = LipReading(mode=mode, inputDim=256, hiddenDim=512,
+                             nClasses=nClasses, frameLen=29, every_frame=isEveryFrame, use_gpu=use_gpu)
     if (mode in ["backendGRU", "finetuneGRU"]):
-        concat_model = ConcatGRU(inputDim=2048, hiddenDim=512, nLayers=2, nClasses=nClasses, every_frame=isEveryFrame)
+        concat_model = ConcatGRU(inputDim=2048, hiddenDim=512,
+                                 nLayers=2, nClasses=nClasses, every_frame=isEveryFrame, use_gpu=use_gpu)
     else:
         raise ValueError(f"Unknown mode {mode} for concat_model")
 
@@ -352,8 +355,6 @@ def trainAudioVisual():
     # setup GPU
     os.environ['CUDA_VISIBLE_DEVICES'] = '0'
     use_gpu = torch.cuda.is_available()
-    if use_gpu:
-        torch.set_default_tensor_type('torch.cuda.FloatTensor')
 
     # setup random seed for training data shuffling
     SEED = 1
