@@ -342,7 +342,7 @@ class LRW_DataPreprocessor:
                     LoggerUtil.warning(f"Video output files '{outputFilePath}' already existed. " +
                                        f"Skipping...")
                 else:
-                    videoData = LRW_DataPreprocessor._get_video_data(filename)
+                    filename, videoData = LRW_DataPreprocessor._get_video_data(filename)
 
                     # create the directory and all parent directory if they didn't exist in the file system
                     FileUtil.makeDirRecursively(outputFileDir)
@@ -393,9 +393,7 @@ class LRW_DataPreprocessor:
 if __name__ == "__main__":
     dataDir = r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\LRW"
     outputDir = LRW_DataPreprocessor.DEFAULT_OUTPUT_DIR
-    LRW_DataPreprocessor.preprocessAudio(dataDir, outputDir=outputDir, force=False)
-    LRW_DataPreprocessor.preprocessVideo(dataDir, outputDir=outputDir, force=False)
-
-
+    LRW_DataPreprocessor.preprocessAudio(dataDir, outputDir=outputDir, force=True)
+    LRW_DataPreprocessor.preprocessVideo(dataDir, outputDir=outputDir, force=True)
 
 
