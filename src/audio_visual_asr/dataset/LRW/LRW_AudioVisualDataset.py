@@ -115,10 +115,13 @@ class LRW_AudioVisualDataset(Dataset):
             raise ValueError(f"Encountered inconsistency between audio dataset and video dataset. " +
                              f"For the audio file '{audio_file_parts[-1]}', "
                              f"failed to locate the video file '{videoFilePath}'")
-
-        video_inputs = LRW_AudioVisualDataset.loadVideo(videoFilePath)
-        audio_inputs = LRW_AudioVisualDataset.loadAudio(audioFilePath)
-        audio_inputs = AudioUtil.normalizeAudio(audio_inputs)
+        try:
+            video_inputs = LRW_AudioVisualDataset.loadVideo(videoFilePath)
+            audio_inputs = LRW_AudioVisualDataset.loadAudio(audioFilePath)
+            audio_inputs = AudioUtil.normalizeAudio(audio_inputs)
+        except Exception as e:
+            print(f"Failed to load {audioFilePath} and {videoFilePath}")
+            raise e
 
         labels = self.data[idx][1]
 
