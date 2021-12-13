@@ -46,6 +46,7 @@ class LRW_AudioVisualDataset(Dataset):
 
         self.allWords = LRW_Utility.getAllWords(self.labels_sorted_path)
 
+        self.skippedFileNum = 0
         self.audioFilenames = glob.glob(FileUtil.joinPath(self.audioPath, '*', self.folds, '*.npz'))
 
         self.data = {}
@@ -57,6 +58,7 @@ class LRW_AudioVisualDataset(Dataset):
                 LoggerUtil.warning(f"The data '{filepath}' whose target {targetWord} " +
                                     f"was not found in the 'label_sorted.txt' file. " +
                                     "The data is skipped/ignored.")
+                self.skippedFileNum += 1
             else:
                 targetWordIdx = self.allWords[targetWord]
                 self.data[idx] = [filepath, targetWordIdx]
@@ -129,7 +131,7 @@ class LRW_AudioVisualDataset(Dataset):
 
 
     def __len__(self):
-        return len(self.audioFilenames)
+        return len(self.audioFilenames) - self.skippedFileNum
 
 
 
