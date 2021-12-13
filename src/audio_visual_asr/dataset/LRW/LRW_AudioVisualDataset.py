@@ -58,9 +58,9 @@ class LRW_AudioVisualDataset(Dataset):
                                     f"was not found in the 'label_sorted.txt' file. " +
                                     "The data is skipped/ignored.")
             else:
-                self.fileNum += 1
                 targetWordIdx = self.allWords[targetWord]
                 self.data[self.fileNum] = [filepath, targetWordIdx]
+                self.fileNum += 1
 
 
         if (logger is not None):
