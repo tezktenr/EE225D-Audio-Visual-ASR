@@ -47,5 +47,14 @@ class LRW_Utility:
 
 # For Testing Purposes
 if __name__ == "__main__":
-    a = LRW_Utility.getWordsArray(r"S:\College\UCB\2021 Fall\EE225D\Projects\EE225D-Audio-Visual-ASR\src\audio_visual_asr\reduced_label_sorted.txt")
-    print(sorted(a) == a)
+    labels = LRW_Utility.getWordsArray(r"S:\College\UCB\2021 Fall\EE225D\Projects\EE225D-Audio-Visual-ASR\src\audio_visual_asr\reduced_label_sorted.txt")
+    setences = [
+        "Authorities understand majority workers wanted medical benefit within social welfare".upper(),
+        "Everyone should simply started spending money without pressure again".upper(),
+        "Private companies often places significant amount money inside banks against inflation".upper(),
+        "Everyone believe police officers might arrested another wrong person without evidence".upper(),
+        "Several reports states parents often abuse children because children cannot control themselves".upper()
+    ]
+    for sentence in setences:
+        for word in sentence.split(" "):
+            print(f"{word} in labels: {word in labels}")
