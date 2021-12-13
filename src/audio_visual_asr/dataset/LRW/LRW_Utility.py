@@ -47,4 +47,5 @@ class LRW_Utility:
 
 # For Testing Purposes
 if __name__ == "__main__":
-    pass
+    a = LRW_Utility.getWordsArray(r"S:\College\UCB\2021 Fall\EE225D\Projects\EE225D-Audio-Visual-ASR\src\audio_visual_asr\reduced_label_sorted.txt")
+    print(sorted(a) == a)
