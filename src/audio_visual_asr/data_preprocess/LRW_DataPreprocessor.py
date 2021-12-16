@@ -393,7 +393,5 @@ class LRW_DataPreprocessor:
 if __name__ == "__main__":
     dataDir = r"E:\lipread_mp4"
     outputDir = r"E:\LRW_NPZ"
-    # LRW_DataPreprocessor.preprocessAudio(dataDir, outputDir=outputDir, force=True)
+    LRW_DataPreprocessor.preprocessAudio(dataDir, outputDir=outputDir, force=True)
     LRW_DataPreprocessor.preprocessVideo(dataDir, outputDir=outputDir, force=False)
-
-

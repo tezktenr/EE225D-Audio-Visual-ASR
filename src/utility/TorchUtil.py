@@ -24,7 +24,7 @@ class TorchUtil:
                         "which should not be instantiated")
 
     @staticmethod
-    def reloadModel(model, logger, path=""):
+    def reloadModel(model, logger, path="", use_gpu=False):
         """
         Reload a previously trained model into the given 'model'
         ------------------------------------------------------------
@@ -45,7 +45,10 @@ class TorchUtil:
             return model
         else:
             model_dict = model.state_dict()
-            pretrained_dict = torch.load(path)
+            if not use_gpu:
+                pretrained_dict = torch.load(path, map_location=torch.device("cpu"))
+            else:
+                pretrained_dict = torch.load(path)
             pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict}
             model_dict.update(pretrained_dict)
             model.load_state_dict(model_dict)

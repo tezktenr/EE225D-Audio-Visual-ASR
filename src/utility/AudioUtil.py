@@ -7,10 +7,15 @@ Description: This is a file that contains the class AudioUtil for audio waveform
 
 # Third Party Libraries
 from pydub import AudioSegment
+from pydub.generators import WhiteNoise
 import numpy as np
+import soundfile
+import librosa
 
 # Project Module
 from src.utility.FileUtil import FileUtil
+from src.utility.OtherUtil import OtherUtil
+from src.audio_visual_asr.data_preprocess.LRW_DataPreprocessor import LRW_DataPreprocessor
 
 # Source Code
 class AudioUtil:
@@ -23,17 +28,52 @@ class AudioUtil:
                         "which should not be instantiated")
 
     @staticmethod
-    def combineAudioFiles(audioFile1, audioFile2, outputFileName=None, outputFormat="wav"):
-        """
-        This method combines/concatenates the audio in audioFile1 and audioFile2
+    def getAudio(audioFile):
+        audioSegment = AudioSegment.from_file(audioFile, FileUtil.getFileExtension(audioFile))
+        return audioSegment
 
-        Note:
-            * if outputFileName = None, the combineAudioSegment object will be returned
-            * if outputFileName != None, the output audioFile path name is returned
+    @staticmethod
+    def saveAudio(audioSegment,
+                  outputFileName=f"_saved_audio_{OtherUtil.getCurrentTimeStamp()}", outputFormat="wav"):
+        """
+        Save pydub AudioSegment in specified output file
 
         Warning:
             * 'wav' and 'raw' format is natively supported. Any other format, like 'mp3' will require FFMPEG. Otherwise,
                 an exception will be thrown
+        ------------------------------------------------------------
+        :param audioSegment
+        :param outputFileName
+        :param outputFormat
+        """
+        # 'audioSegment' will be exported/saved to the specified output file
+        if (outputFormat.startswith('.')):
+            outputFormat = outputFormat[1:]
+        audioSegment.export(outputFileName+f".{outputFormat}", format=outputFormat)
+        return outputFileName
+
+    @staticmethod
+    def saveAudioWithNumpy(audioData, samplingRate,
+                           outputFileName=f"_saved_audio_{OtherUtil.getCurrentTimeStamp()}", outputFormat="wav"):
+        if (outputFormat.startswith('.')):
+            outputFormat = outputFormat[1:]
+        soundfile.write(f"{outputFileName}.{outputFormat}", audioData, samplingRate)
+        return outputFileName
+
+
+    @staticmethod
+    def convertToLrwFormat(mouthVideoFile):
+        if (not FileUtil.fileExists(mouthVideoFile)):
+            raise ValueError(f"Cannot find mouth video file at '{mouthVideoFile}'")
+
+        audio, samplingRate = librosa.load(mouthVideoFile, sr=16000)
+        audio = audio[-19456:]
+        return audio
+
+    @staticmethod
+    def combineAudioFiles(audioFile1, audioFile2):
+        """
+        This method combines/concatenates the audio in audioFile1 and audioFile2
         ------------------------------------------------------------
         :param audioFile1: the path for audio file 1
         :param audioFile2: the path for audio file 2
@@ -47,22 +87,23 @@ class AudioUtil:
             raise ValueError(f"Audio file(s) {missingAudios} don't exist or they aren't valid files in the filesystem")
 
         # Extract audioFile1 and audioFile2
-        audio1 = AudioSegment.from_file(audioFile1, FileUtil.getFileExtension(audioFile1))
-        audio2 = AudioSegment.from_file(audioFile2, FileUtil.getFileExtension(audioFile2))
+        audio1 = AudioUtil.getAudio(audioFile1)
+        audio2 = AudioUtil.getAudio(audioFile2)
 
         # Combine the audios
         combinedAudio = audio1 + audio2
+        return combinedAudio
 
-        if (outputFileName is None):
-            # No output file specified, simply return the AudioSegment in the pydub library
-            return combinedAudio
-        else:
-            # Output file specified.
-            # 'combinedAudio' will be exported/saved to the specified output file
-            if (outputFormat.startswith('.')):
-                outputFormat = outputFormat[1:]
-            combinedAudio.export(outputFileName+f".{outputFormat}", format=outputFormat)
-            return outputFileName
+
+    @staticmethod
+    def addWhiteNoiseToAudio(audioFile, volume=0):
+        if (not FileUtil.fileExists(audioFile)):
+            raise ValueError(f"Cannot find audio file at '{audioFile}'")
+
+        audio = AudioUtil.getAudio(audioFile)
+        noise = WhiteNoise().to_audio_segment(duration=len(audio), volume=volume)
+        audioWithNoise = audio.overlay(noise)
+        return audioWithNoise
 
     @staticmethod
     def normalizeAudio(audioInputs):
@@ -75,6 +116,7 @@ class AudioUtil:
 
 # For Testing Purposes
 if __name__ == "__main__":
-    AudioUtil.combineAudioFiles("C:\\users\\tezkt\\Desktop\\audiocheck.net_whitenoise.wav",
-                                "C:\\users\\tezkt\\Desktop\\audiocheck.net_whitenoise.wav",
-                                "outputAudio","wav")
+    wordAudio = r"C:\Users\tezkt\Pictures\Camera Roll\win-20211215-00-00-02-pro_93E0Zu8z.mp4"
+    wordAudio = r"C:\Users\tezkt\Pictures\Camera Roll\win-20211215-00-00-02-pro_93E0Zu8z (online-video-cutter.com).mp4"
+    # wordAudio = r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\LRW\ABOUT\test\ABOUT_00001.mp4"
+    AudioUtil.convertToLrwFormat(wordAudio)

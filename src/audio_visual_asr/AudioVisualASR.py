@@ -33,7 +33,7 @@ class AudioVisualASR:
 
     def __init__(self, audioModelPath, videoModelPath, concatModelPath, logger, blankModel=False,
                  labelsSortedPath = FileUtil.joinPath(CURR_SOURCE_DIR_PATH, "label_sorted.txt"),
-                 mode="finetuneGRU", nClasses=500, isEveryFrame=False):
+                 mode="finetuneGRU", nClasses=500, isEveryFrame=False, use_gpu=False):
         # rememeber config
         self.mode = mode
         self.nClasses = nClasses
@@ -44,12 +44,12 @@ class AudioVisualASR:
 
         # create 'blank' models
         self.audio_model = AudioRecognition(mode=mode, inputDim=512, hiddenDim=512, nClasses=nClasses, frameLen=29,
-                                       every_frame=isEveryFrame)
+                                       every_frame=isEveryFrame, use_gpu=use_gpu)
         self.video_model = LipReading(mode=mode, inputDim=256, hiddenDim=512, nClasses=nClasses, frameLen=29,
-                                 every_frame=isEveryFrame)
+                                 every_frame=isEveryFrame, use_gpu=use_gpu)
         if (mode in ["backendGRU", "finetuneGRU"]):
             self.concat_model = ConcatGRU(inputDim=2048, hiddenDim=512, nLayers=2, nClasses=nClasses,
-                                     every_frame=isEveryFrame)
+                                     every_frame=isEveryFrame, use_gpu=use_gpu)
         else:
             raise ValueError(f"Unknown mode {mode} for concat_model")
 

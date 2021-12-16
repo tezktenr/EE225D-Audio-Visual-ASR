@@ -245,22 +245,23 @@ def test(audio_model, video_model, concat_model, data_loader, criterion, epoch, 
 
     beginTime = time.time()
     for batch_idx, (audio_inputs, video_inputs, targets) in enumerate(data_loader):
-        # prepare inputs and targets
-        audio_inputs = _prepare_audio_inputs(audio_inputs, use_gpu, training=False)
-        video_inputs = _prepare_video_inputs(video_inputs, use_gpu, training=False)
-        targets = _prepare_targets(targets, use_gpu)
+        with torch.no_grad():
+            # prepare inputs and targets
+            audio_inputs = _prepare_audio_inputs(audio_inputs, use_gpu, training=False)
+            video_inputs = _prepare_video_inputs(video_inputs, use_gpu, training=False)
+            targets = _prepare_targets(targets, use_gpu)
 
-        # make predictions using the model
-        audio_outputs = audio_model(audio_inputs)
-        video_outputs = video_model(video_inputs)
-        merged_inputs = torch.cat((audio_outputs, video_outputs), dim=2)
-        outputs = concat_model(merged_inputs)
-        if isEveryFrame:
-            outputs = torch.mean(outputs, 1)
-        _, preds = torch.max(F.softmax(outputs, dim=1).data, 1)
+            # make predictions using the model
+            audio_outputs = audio_model(audio_inputs)
+            video_outputs = video_model(video_inputs)
+            merged_inputs = torch.cat((audio_outputs, video_outputs), dim=2)
+            outputs = concat_model(merged_inputs)
+            if isEveryFrame:
+                outputs = torch.mean(outputs, 1)
+            _, preds = torch.max(F.softmax(outputs, dim=1).data, 1)
 
-        # calculating loss
-        loss = criterion(outputs, targets)
+            # calculating loss
+            loss = criterion(outputs, targets)
 
         # statistics
         ### LOSS stats: running_loss += loss.data[0] * inputs.size(0)
