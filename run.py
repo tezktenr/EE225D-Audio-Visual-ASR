@@ -28,40 +28,27 @@ logger.info("================== run.py ==================")
 
 VALIDATED_WORDS = [s.upper() for s in ["AUTHORITIES", "CANNOT", "CHILDREN", "COMPANIES", "CONTINUE", "DIFFERENCE", "DIFFICULT", "ECONOMIC", "FOOTBALL", "INFLATION"]]
 DATA_DIR = r"/mnt/disks/ee225d/val_and_test"
-LABELS_SORTED_PATH = r"/home/djianglai/"
+LABELS_SORTED_PATH = r"/home/djianglai/EE225D-Audio-Visual-ASR/src/audio_visual_asr/reduced_label_sorted.txt"
 ALL_WORDS = LRW_Utility.getAllWords(LABELS_SORTED_PATH)
 WHITE_NOISE_METADATA = {
     "BASE_DIR": r"/mnt/disks/ee225d/white_noise/mp4",
-    "WHITE_NOISE_STORE_PATH": r"/mnt/disks/ee225d/white_noise_store",
+    "WHITE_NOISE_STORE_PATH": r"/mnt/disks/ee225d/white_noise/white_noise_store",
     "WHITE_NOISE_DBFS": [0, -25, -50, -100],
 }
 SPECIFIC_NOISE_METADATA = {
     "BASE_DIR": r"/mnt/disks/ee225d/specific_noise/mp4",
     "SPECIFIC_NOISES": [
-        r"/mnt/disks/ee225d/specific_noise/specific_noise_store/airplane.wav",
-        r"/mnt/disks/ee225d/specific_noise/specific_noise_store/car_horn.wav",
-        r"/mnt/disks/ee225d/specific_noise/specific_noise_store/car_horn_2.wav",
-        r"/mnt/disks/ee225d/specific_noise/specific_noise_store/church_bells.wav",
-        r"/mnt/disks/ee225d/specific_noise/specific_noise_store/clock_alarm.wav",
-        r"/mnt/disks/ee225d/specific_noise/specific_noise_store/crowd_laughing.wav",
-        r"/mnt/disks/ee225d/specific_noise/specific_noise_store/engine.wav",
-        r"/mnt/disks/ee225d/specific_noise/specific_noise_store/helicopter.wav",
-        r"/mnt/disks/ee225d/specific_noise/specific_noise_store/laughing.wav",
-        r"/mnt/disks/ee225d/specific_noise/specific_noise_store/man_cough.wav",
-        r"/mnt/disks/ee225d/specific_noise/specific_noise_store/man_coughing.wav",
-        r"/mnt/disks/ee225d/specific_noise/specific_noise_store/motor_cycle.wav",
-        r"/mnt/disks/ee225d/specific_noise/specific_noise_store/rooster.wav",
-        r"/mnt/disks/ee225d/specific_noise/specific_noise_store/snoring.wav",
         r"/mnt/disks/ee225d/specific_noise/specific_noise_store/toilet_flush.wav",
-        r"/mnt/disks/ee225d/specific_noise/specific_noise_store/vacuum_cleaner.wav",
-        r"/mnt/disks/ee225d/specific_noise/specific_noise_store/washing_machine.wav"
+        r"/mnt/disks/ee225d/specific_noise/specific_noise_store/helicopter.wav",
+        r"/mnt/disks/ee225d/specific_noise/specific_noise_store/car_horn.wav",
+        r"/mnt/disks/ee225d/specific_noise/specific_noise_store/crowd_laughing.wav",
+        r"/mnt/disks/ee225d/specific_noise/specific_noise_store/snoring.wav"
     ]
 }
 
-AUDIO_MODEL_PATH=r'/mnt/disks/ee225d/models/audio_model_finetuneGRU_8.pt'
-VIDEO_MODEL_PATH=r'/mnt/disks/ee225d/models/video_model_finetuneGRU_8.pt'
-CONCAT_MODEL_PATH=r'/mnt/disks/ee225d/models/concat_model_finetuneGRU_8.pt'
-LABELS_SORTED_PATH=r'/home/djianglai/EE225D-Audio-Visual-ASR/src/audio_visual_asr/reduced_label_sorted.txt'
+AUDIO_MODEL_PATH=r'/home/djianglai/EE225D-Audio-Visual-ASR/src/audio_visual_asr/_SAVED_MODELS/AudioVisual/finetuneGRU/_last_frame/audio_model_finetuneGRU_8.pt'
+VIDEO_MODEL_PATH=r'/home/djianglai/EE225D-Audio-Visual-ASR/src/audio_visual_asr/_SAVED_MODELS/AudioVisual/finetuneGRU/_last_frame/video_model_finetuneGRU_8.pt'
+CONCAT_MODEL_PATH=r'/home/djianglai/EE225D-Audio-Visual-ASR/src/audio_visual_asr/_SAVED_MODELS/AudioVisual/finetuneGRU/_last_frame/concat_model_finetuneGRU_8.pt'
 
 # Source Code
 def get_all_mp4_under_val_test(dataDir) -> list:
@@ -92,14 +79,18 @@ def generateWhiteNoises(mp4Files):
                                                  duration=10000, noiseVolume=noiseVolume)
         for filepath in mp4Files:
             filename = FileUtil.getFileNameWithoutExtension(filepath)
+            fold = FileUtil.extractPartsFromPaths(filepath)[-2]
             targetWord = FileUtil.extractPartsFromPaths(filepath)[-3]
             if targetWord in ALL_WORDS and targetWord in VALIDATED_WORDS:
-                targetDir = FileUtil.joinPath(WHITE_NOISE_METADATA["BASE_DIR"], targetWord, "val")
+                targetDir = FileUtil.joinPath(WHITE_NOISE_METADATA["BASE_DIR"], targetWord, fold)
                 FileUtil.makeDirRecursively(targetDir)
                 targetFileName = f"{filename}_{noiseVolume}"
-                resultFile = MediaUtil.mergeAudioVideo(noisePath, filepath,
-                                                       targetPath=FileUtil.joinPath(targetDir, f"{targetFileName}.mp4"))
-                allNoiseFiles[noiseVolume].append(resultFile)
+                targetPath = FileUtil.joinPath(targetDir, f"{targetFileName}.mp4")
+                if (FileUtil.fileExists(targetPath)):
+                    logger.info(f"Found noise video '{targetPath}'. Skipping...")
+                else:
+                    targetPath = MediaUtil.mergeAudioVideo(noisePath, filepath, targetPath=targetPath)
+                allNoiseFiles[noiseVolume].append(targetPath)
     return allNoiseFiles
 
 def generateSpecificNoises(mp4Files):
@@ -111,14 +102,18 @@ def generateSpecificNoises(mp4Files):
 
         for filepath in mp4Files:
             filename = FileUtil.getFileNameWithoutExtension(filepath)
+            fold = FileUtil.extractPartsFromPaths(filepath)[-2]
             targetWord = FileUtil.extractPartsFromPaths(filepath)[-3]
             if targetWord in ALL_WORDS and targetWord in VALIDATED_WORDS:
-                targetDir = FileUtil.joinPath(SPECIFIC_NOISE_METADATA["BASE_DIR"], targetWord, "val")
+                targetDir = FileUtil.joinPath(SPECIFIC_NOISE_METADATA["BASE_DIR"], targetWord, fold)
                 FileUtil.makeDirRecursively(targetDir)
                 targetFileName = f"{filename}_{noiseName}"
-                resultFile = MediaUtil.mergeAudioVideo(noiseFile, filepath,
-                                                       targetPath=FileUtil.joinPath(targetDir, f"{targetFileName}.mp4"))
-                allNoiseFiles[noiseName].append(resultFile)
+                targetPath = FileUtil.joinPath(targetDir, f"{targetFileName}.mp4")
+                if (FileUtil.fileExists(targetPath)):
+                    logger.info(f"Found noise video '{targetPath}'. Skipping...")
+                else:
+                    targetPath = MediaUtil.mergeAudioVideo(noiseFile, filepath, targetPath=targetPath)
+                allNoiseFiles[noiseName].append(targetPath)
     return allNoiseFiles
 
 
@@ -140,7 +135,7 @@ def validateASR(audioVisualASR):
     logger.info("** Reading All MP4 Files **")
     logger.info("===========================")
     mp4_files = get_all_mp4_under_val_test(DATA_DIR)
-    logger.info(f"Read {mp4_files} mp4 files")
+    logger.info(f"Read {len(mp4_files)} mp4 files")
     logger.info("")
 
     logger.info("===========================")
