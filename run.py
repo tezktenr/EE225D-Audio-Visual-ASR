@@ -23,9 +23,10 @@ from src.audio_visual_asr.AudioVisualASR import AudioVisualASR
 # Global Constants
 # setup logger
 logger = LoggerUtil.getLogger("run")
+USE_GPU = torch.cuda.is_available()
 logger.info("================== run.py ==================")
 
-USE_GPU = torch.cuda.is_available()
+VALIDATED_WORDS = [s.upper() for s in ["AUTHORITIES", "CANNOT", "CHILDREN", "COMPANIES", "CONTINUE", "DIFFERENCE", "DIFFICULT", "ECONOMIC", "FOOTBALL", "INFLATION"]]
 DATA_DIR = r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\LRW"
 LABELS_SORTED_PATH = r"S:\College\UCB\2021 Fall\EE225D\Projects\EE225D-Audio-Visual-ASR\src\audio_visual_asr\reduced_label_sorted.txt"
 ALL_WORDS = LRW_Utility.getAllWords(LABELS_SORTED_PATH)
@@ -34,7 +35,6 @@ WHITE_NOISE_METADATA = {
     "WHITE_NOISE_STORE_PATH": r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\WhiteNoises",
     "WHITE_NOISE_DBFS": [0, -20, -50],
 }
-
 SPECIFIC_NOISE_METADATA = {
     "BASE_DIR": r"S:\College\UCB\2021 Fall\EE225D\Projects\TestSpecificNoise",
     "SPECIFIC_NOISES": [
@@ -57,7 +57,7 @@ def validateAllWords(audioVisualASR, mp4Files):
 
     for filepath in mp4Files:
         targetWord = FileUtil.extractPartsFromPaths(filepath)[-3]
-        if targetWord in ALL_WORDS:
+        if targetWord in ALL_WORDS and targetWord in VALIDATED_WORDS:
             wordsCnt[targetWord] += 1
             prediction = audioVisualASR.predictFromMP4(filepath, useGPU=USE_GPU)
             if prediction == targetWord:
