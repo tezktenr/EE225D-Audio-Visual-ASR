@@ -9,3 +9,6 @@
 *.wav
 *.wma
 *.wpl
+
+# media util generated file
+tmp_media_util/
