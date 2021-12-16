@@ -26,29 +26,44 @@ logger = LoggerUtil.getLogger("run")
 USE_GPU = torch.cuda.is_available()
 logger.info("================== run.py ==================")
 
-VALIDATED_WORDS = [s.upper() for s in ["AUTHORITIES", "CANNOT", "CHILDREN", "COMPANIES", "CONTINUE", "DIFFERENCE", "DIFFICULT", "ECONOMIC", "FOOTBALL", "INFLATION"]]
-DATA_DIR = r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\LRW"
+VALIDATED_WORDS = [s.upper() for s in ["AUTHORITIES"]]
+DATA_DIR = r"E:\lipread_mp4"
 LABELS_SORTED_PATH = r"S:\College\UCB\2021 Fall\EE225D\Projects\EE225D-Audio-Visual-ASR\src\audio_visual_asr\reduced_label_sorted.txt"
 ALL_WORDS = LRW_Utility.getAllWords(LABELS_SORTED_PATH)
 WHITE_NOISE_METADATA = {
     "BASE_DIR": r"S:\College\UCB\2021 Fall\EE225D\Projects\TestWhiteNoise",
     "WHITE_NOISE_STORE_PATH": r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\WhiteNoises",
-    "WHITE_NOISE_DBFS": [0, -20, -50],
+    "WHITE_NOISE_DBFS": [0, -25, -50, -100],
 }
 SPECIFIC_NOISE_METADATA = {
     "BASE_DIR": r"S:\College\UCB\2021 Fall\EE225D\Projects\TestSpecificNoise",
     "SPECIFIC_NOISES": [
-        r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\Noise\1-137-A-32.wav",
-        r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\Noise\1-977-A-39.wav"
+        r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\MyNoise\airplane.wav",
+        r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\MyNoise\car_horn.wav",
+        r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\MyNoise\car_horn_2.wav",
+        r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\MyNoise\church_bells.wav",
+        r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\MyNoise\clock_alarm.wav",
+        r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\MyNoise\crowd_laughing.wav",
+        r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\MyNoise\engine.wav",
+        r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\MyNoise\helicopter.wav",
+        r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\MyNoise\laughing.wav",
+        r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\MyNoise\man_cough.wav",
+        r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\MyNoise\man_coughing.wav",
+        r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\MyNoise\motor_cycle.wav",
+        r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\MyNoise\rooster.wav",
+        r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\MyNoise\snoring.wav",
+        r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\MyNoise\toilet_flush.wav",
+        r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\MyNoise\vacuum_cleaner.wav",
+        r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\MyNoise\washing_machine.wav"
     ]
 }
 
 
 # Source Code
-def get_all_mp4_under_val(dataDir) -> list:
+def get_all_mp4_under_val_test(dataDir) -> list:
     if (not FileUtil.directoryExists(dataDir)):
         raise RuntimeError(f"Data directory {dataDir} doesn't exist in the file system")
-    return glob.glob(FileUtil.joinPath(dataDir, "*", "val", '*.mp4'))
+    return glob.glob(FileUtil.joinPath(dataDir, "*", "val", '*.mp4')) + glob.glob(FileUtil.joinPath(dataDir, "*", "test", '*.mp4'))
 
 
 def validateAllWords(audioVisualASR, mp4Files):
@@ -74,7 +89,7 @@ def generateWhiteNoises(mp4Files):
         for filepath in mp4Files:
             filename = FileUtil.getFileNameWithoutExtension(filepath)
             targetWord = FileUtil.extractPartsFromPaths(filepath)[-3]
-            if targetWord in ALL_WORDS:
+            if targetWord in ALL_WORDS and targetWord in VALIDATED_WORDS:
                 targetDir = FileUtil.joinPath(WHITE_NOISE_METADATA["BASE_DIR"], targetWord, "val")
                 FileUtil.makeDirRecursively(targetDir)
                 targetFileName = f"{filename}_{noiseVolume}"
@@ -93,7 +108,7 @@ def generateSpecificNoises(mp4Files):
         for filepath in mp4Files:
             filename = FileUtil.getFileNameWithoutExtension(filepath)
             targetWord = FileUtil.extractPartsFromPaths(filepath)[-3]
-            if targetWord in ALL_WORDS:
+            if targetWord in ALL_WORDS and targetWord in VALIDATED_WORDS:
                 targetDir = FileUtil.joinPath(SPECIFIC_NOISE_METADATA["BASE_DIR"], targetWord, "val")
                 FileUtil.makeDirRecursively(targetDir)
                 targetFileName = f"{filename}_{noiseName}"
@@ -115,23 +130,13 @@ def printValidationStats(wordsCnt, wordsCorrect):
     logger.info(f"Total Counts: {totalCnt}")
 
 
-def main():
-    # models
-    AUDIO_MODEL_PATH = r'C:\Users\tezkt\Desktop\_SAVED_MODELS\audio_model_finetuneGRU_8.pt'
-    VIDEO_MODEL_PATH = r'C:\Users\tezkt\Desktop\_SAVED_MODELS\video_model_finetuneGRU_8.pt'
-    CONCAT_MODEL_PATH = r'C:\Users\tezkt\Desktop\_SAVED_MODELS\concat_model_finetuneGRU_8.pt'
-    audioVisualASR = AudioVisualASR(AUDIO_MODEL_PATH, VIDEO_MODEL_PATH, CONCAT_MODEL_PATH, logger,
-                                    nClasses=124, use_gpu=USE_GPU,
-                                    labelsSortedPath=r'S:\College\UCB\2021 Fall\EE225D\Projects\EE225D-Audio-Visual-ASR\src\audio_visual_asr\reduced_label_sorted.txt')
-    #### ttsSynthesizer = Synthesizer(logger)
-
-
+def validateASR(audioVisualASR):
     logger.info("")
     logger.info("===========================")
     logger.info("** Reading All MP4 Files **")
     logger.info("===========================")
-    mp4_files = get_all_mp4_under_val(DATA_DIR)
-    logger.info("Read Finished")
+    mp4_files = get_all_mp4_under_val_test(DATA_DIR)
+    logger.info(f"Read {mp4_files} mp4 files")
     logger.info("")
 
     logger.info("===========================")
@@ -167,6 +172,23 @@ def main():
         printValidationStats(wordsCnt, wordsCorrect)
         logger.info("-"*50)
         logger.info("")
+
+
+def main():
+
+    # models
+    AUDIO_MODEL_PATH = r'C:\Users\tezkt\Desktop\_SAVED_MODELS\audio_model_finetuneGRU_8.pt'
+    VIDEO_MODEL_PATH = r'C:\Users\tezkt\Desktop\_SAVED_MODELS\video_model_finetuneGRU_8.pt'
+    CONCAT_MODEL_PATH = r'C:\Users\tezkt\Desktop\_SAVED_MODELS\concat_model_finetuneGRU_8.pt'
+    audioVisualASR = AudioVisualASR(AUDIO_MODEL_PATH, VIDEO_MODEL_PATH, CONCAT_MODEL_PATH, logger,
+                                    nClasses=124, use_gpu=USE_GPU,
+                                    labelsSortedPath=r'S:\College\UCB\2021 Fall\EE225D\Projects\EE225D-Audio-Visual-ASR\src\audio_visual_asr\reduced_label_sorted.txt')
+    #### ttsSynthesizer = Synthesizer(logger)
+
+    # validate audioVisualASR models
+    validateASR(audioVisualASR)
+
+    # replace audio with tts
 
 
 # Main Execution Block
