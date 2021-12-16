@@ -18,7 +18,7 @@ from src.utility.LoggerUtil import LoggerUtil
 from src.audio_visual_asr.dataset.LRW.LRW_Utility import LRW_Utility
 from src.audio_visual_asr.data_preprocess.LRW_DataPreprocessor import LRW_DataPreprocessor
 from src.audio_visual_asr.AudioVisualASR import AudioVisualASR
-# from src.tts.Synthesizer import Synthesizer
+from src.tts.Synthesizer import Synthesizer
 
 # Global Constants
 # setup logger
@@ -26,37 +26,41 @@ logger = LoggerUtil.getLogger("run")
 USE_GPU = torch.cuda.is_available()
 logger.info("================== run.py ==================")
 
-VALIDATED_WORDS = [s.upper() for s in ["AUTHORITIES"]]
-DATA_DIR = r"E:\lipread_mp4"
-LABELS_SORTED_PATH = r"S:\College\UCB\2021 Fall\EE225D\Projects\EE225D-Audio-Visual-ASR\src\audio_visual_asr\reduced_label_sorted.txt"
+VALIDATED_WORDS = [s.upper() for s in ["AUTHORITIES", "CANNOT", "CHILDREN", "COMPANIES", "CONTINUE", "DIFFERENCE", "DIFFICULT", "ECONOMIC", "FOOTBALL", "INFLATION"]]
+DATA_DIR = r"/mnt/disks/ee225d/val_and_test"
+LABELS_SORTED_PATH = r"/home/djianglai/"
 ALL_WORDS = LRW_Utility.getAllWords(LABELS_SORTED_PATH)
 WHITE_NOISE_METADATA = {
-    "BASE_DIR": r"S:\College\UCB\2021 Fall\EE225D\Projects\TestWhiteNoise",
-    "WHITE_NOISE_STORE_PATH": r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\WhiteNoises",
+    "BASE_DIR": r"/mnt/disks/ee225d/white_noise/mp4",
+    "WHITE_NOISE_STORE_PATH": r"/mnt/disks/ee225d/white_noise_store",
     "WHITE_NOISE_DBFS": [0, -25, -50, -100],
 }
 SPECIFIC_NOISE_METADATA = {
-    "BASE_DIR": r"S:\College\UCB\2021 Fall\EE225D\Projects\TestSpecificNoise",
+    "BASE_DIR": r"/mnt/disks/ee225d/specific_noise/mp4",
     "SPECIFIC_NOISES": [
-        r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\MyNoise\airplane.wav",
-        r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\MyNoise\car_horn.wav",
-        r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\MyNoise\car_horn_2.wav",
-        r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\MyNoise\church_bells.wav",
-        r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\MyNoise\clock_alarm.wav",
-        r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\MyNoise\crowd_laughing.wav",
-        r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\MyNoise\engine.wav",
-        r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\MyNoise\helicopter.wav",
-        r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\MyNoise\laughing.wav",
-        r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\MyNoise\man_cough.wav",
-        r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\MyNoise\man_coughing.wav",
-        r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\MyNoise\motor_cycle.wav",
-        r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\MyNoise\rooster.wav",
-        r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\MyNoise\snoring.wav",
-        r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\MyNoise\toilet_flush.wav",
-        r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\MyNoise\vacuum_cleaner.wav",
-        r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\MyNoise\washing_machine.wav"
+        r"/mnt/disks/ee225d/specific_noise/specific_noise_store/airplane.wav",
+        r"/mnt/disks/ee225d/specific_noise/specific_noise_store/car_horn.wav",
+        r"/mnt/disks/ee225d/specific_noise/specific_noise_store/car_horn_2.wav",
+        r"/mnt/disks/ee225d/specific_noise/specific_noise_store/church_bells.wav",
+        r"/mnt/disks/ee225d/specific_noise/specific_noise_store/clock_alarm.wav",
+        r"/mnt/disks/ee225d/specific_noise/specific_noise_store/crowd_laughing.wav",
+        r"/mnt/disks/ee225d/specific_noise/specific_noise_store/engine.wav",
+        r"/mnt/disks/ee225d/specific_noise/specific_noise_store/helicopter.wav",
+        r"/mnt/disks/ee225d/specific_noise/specific_noise_store/laughing.wav",
+        r"/mnt/disks/ee225d/specific_noise/specific_noise_store/man_cough.wav",
+        r"/mnt/disks/ee225d/specific_noise/specific_noise_store/man_coughing.wav",
+        r"/mnt/disks/ee225d/specific_noise/specific_noise_store/motor_cycle.wav",
+        r"/mnt/disks/ee225d/specific_noise/specific_noise_store/rooster.wav",
+        r"/mnt/disks/ee225d/specific_noise/specific_noise_store/snoring.wav",
+        r"/mnt/disks/ee225d/specific_noise/specific_noise_store/toilet_flush.wav",
+        r"/mnt/disks/ee225d/specific_noise/specific_noise_store/vacuum_cleaner.wav",
+        r"/mnt/disks/ee225d/specific_noise/specific_noise_store/washing_machine.wav"
     ]
 }
+
+AUDIO_MODEL_PATH=r'/mnt/disks/ee225d/models/audio_model_finetuneGRU_8.pt'
+VIDEO_MODEL_PATH=r'/mnt/disks/ee225d/models/video_model_finetuneGRU_8.pt'
+CONCAT_MODEL_PATH=r'/mnt/disks/ee225d/models/concat_model_finetuneGRU_8.pt'
 
 
 # Source Code
@@ -177,18 +181,19 @@ def validateASR(audioVisualASR):
 def main():
 
     # models
-    AUDIO_MODEL_PATH = r'C:\Users\tezkt\Desktop\_SAVED_MODELS\audio_model_finetuneGRU_8.pt'
-    VIDEO_MODEL_PATH = r'C:\Users\tezkt\Desktop\_SAVED_MODELS\video_model_finetuneGRU_8.pt'
-    CONCAT_MODEL_PATH = r'C:\Users\tezkt\Desktop\_SAVED_MODELS\concat_model_finetuneGRU_8.pt'
     audioVisualASR = AudioVisualASR(AUDIO_MODEL_PATH, VIDEO_MODEL_PATH, CONCAT_MODEL_PATH, logger,
                                     nClasses=124, use_gpu=USE_GPU,
                                     labelsSortedPath=r'S:\College\UCB\2021 Fall\EE225D\Projects\EE225D-Audio-Visual-ASR\src\audio_visual_asr\reduced_label_sorted.txt')
-    #### ttsSynthesizer = Synthesizer(logger)
+    ttsSynthesizer = Synthesizer(logger)
 
     # validate audioVisualASR models
     validateASR(audioVisualASR)
 
     # replace audio with tts
+    noisyWordFile = r"S:\College\UCB\2021 Fall\EE225D\Projects\TestWhiteNoise\AUTHORITIES\val\AUTHORITIES_00001_-50.mp4"
+    recoveredWord = audioVisualASR.predictFromMP4(noisyWordFile, useGPU=USE_GPU)
+    ttsSynthesizer.synth(text=recoveredWord, wavpath="synth.wav")
+    MediaUtil.mergeAudioVideo("synth.wav", noisyWordFile, keepBothAudio=False)
 
 
 # Main Execution Block

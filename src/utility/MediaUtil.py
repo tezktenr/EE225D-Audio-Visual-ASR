@@ -26,16 +26,26 @@ class MediaUtil:
                         "which should not be instantiated")
 
     @staticmethod
-    def mergeAudioVideo(audioFile, videoFile, targetPath=f"merged_{OtherUtil.getCurrentTimeStamp()}.mp4"):
+    def mergeAudioVideo(audioFile, videoFile, targetPath=f"merged_{OtherUtil.getCurrentTimeStamp()}.mp4", keepBothAudio=True):
         try:
-            subprocess.call([
-                'ffmpeg', '-y',
-                '-i', f'{audioFile}',
-                '-i', f'{videoFile}',
-                '-filter_complex', 'amix=inputs=2:duration=shortest',
-                '-map', '1:v',
-                f'{targetPath}'
-            ], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+            if keepBothAudio:
+                subprocess.call([
+                    'ffmpeg', '-y',
+                    '-i', f'{audioFile}',
+                    '-i', f'{videoFile}',
+                    '-filter_complex', 'amix=inputs=2:duration=shortest',
+                    '-map', '1:v',
+                    f'{targetPath}'
+                ], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+            else:
+                subprocess.call([
+                    'ffmpeg', '-y',
+                    '-i', f'{videoFile}',
+                    '-i', f'{audioFile}',
+                    '-c:v', 'copy',
+                    '-c:a', 'aac',
+                    f'{targetPath}'
+                ], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
         except Exception as err:
             raise RuntimeError("Failed to call ffmpeg. Please make sure ffmpeg is installed on your machine.")
         return targetPath
