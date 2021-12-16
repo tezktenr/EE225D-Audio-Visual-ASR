@@ -61,7 +61,7 @@ SPECIFIC_NOISE_METADATA = {
 AUDIO_MODEL_PATH=r'/mnt/disks/ee225d/models/audio_model_finetuneGRU_8.pt'
 VIDEO_MODEL_PATH=r'/mnt/disks/ee225d/models/video_model_finetuneGRU_8.pt'
 CONCAT_MODEL_PATH=r'/mnt/disks/ee225d/models/concat_model_finetuneGRU_8.pt'
-
+LABELS_SORTED_PATH=r'/home/djianglai/EE225D-Audio-Visual-ASR/src/audio_visual_asr/reduced_label_sorted.txt'
 
 # Source Code
 def get_all_mp4_under_val_test(dataDir) -> list:
@@ -183,7 +183,7 @@ def main():
     # models
     audioVisualASR = AudioVisualASR(AUDIO_MODEL_PATH, VIDEO_MODEL_PATH, CONCAT_MODEL_PATH, logger,
                                     nClasses=124, use_gpu=USE_GPU,
-                                    labelsSortedPath=r'S:\College\UCB\2021 Fall\EE225D\Projects\EE225D-Audio-Visual-ASR\src\audio_visual_asr\reduced_label_sorted.txt')
+                                    labelsSortedPath=LABELS_SORTED_PATH)
     ttsSynthesizer = Synthesizer(logger)
 
     # validate audioVisualASR models
