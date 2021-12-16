@@ -198,6 +198,10 @@ class FileUtil:
 
         return fileExtension[1:]
 
+    @staticmethod
+    def getFileNameWithoutExtension(pathname):
+        return Path(pathname).stem
+
 
     @staticmethod
     def joinPath(*pathArgs) -> str:

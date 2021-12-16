@@ -26,6 +26,21 @@ class MediaUtil:
                         "which should not be instantiated")
 
     @staticmethod
+    def mergeAudioVideo(audioFile, videoFile, targetPath=f"merged_{OtherUtil.getCurrentTimeStamp()}.mp4"):
+        try:
+            subprocess.call([
+                'ffmpeg', '-y',
+                '-i', f'{audioFile}',
+                '-i', f'{videoFile}',
+                '-filter_complex', 'amix=inputs=2:duration=shortest',
+                '-map', '1:v',
+                f'{targetPath}'
+            ], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        except Exception as err:
+            raise RuntimeError("Failed to call ffmpeg. Please make sure ffmpeg is installed on your machine.")
+        return targetPath
+
+    @staticmethod
     def cutMP4(MP4Filepath, startTime, endTime, targetDir=None, targetName=None, targetFormat="mp4"):
         if (targetDir == None):
             targetDir = FileUtil.joinPath(CURR_SOURCE_DIR_PATH, "tmp_media_util")

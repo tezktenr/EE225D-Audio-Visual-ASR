@@ -25,6 +25,17 @@ class VideoUtil:
                         "which should not be instantiated")
 
     @staticmethod
+    def saveVideo(videoData,
+                  outputFileName=f"saved_video_{OtherUtil.getCurrentTimeStamp()}", outputFormat="avi"):
+        frames, frameWidth, frameHeight, channels = videoData.shape
+        result = cv2.VideoWriter(f"{outputFileName}.{outputFormat}",
+                                 cv2.VideoWriter_fourcc(*'MJPG'),
+                                 10, (frameWidth, frameHeight))
+        for frame in videoData:
+            result.write(frame)
+        result.release()
+
+    @staticmethod
     def resizeVideo(videoData, size):
         video = []
         for frame in videoData:
@@ -134,11 +145,7 @@ class VideoUtil:
 
 # For Testing Purposes
 if __name__ == "__main__":
-    mouthfile = r"C:\Users\tezkt\Pictures\Camera Roll\win-20211215-00-00-02-pro_93E0Zu8z.mp4"
-    videoData = VideoUtil.convertToLrwFormat(mouthfile)
-
-    # from src.audio_visual_asr.data_preprocess.LRW_DataPreprocessor import LRW_DataPreprocessor
-    # audioData, videoData = LRW_DataPreprocessor.preprocessSingleFile(r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\LRW\ABOUT\test\ABOUT_00001.mp4")
-
-    while True:
-        VideoUtil.displayVideo(videoData)
+    from src.audio_visual_asr.data_preprocess.LRW_DataPreprocessor import LRW_DataPreprocessor
+    trainFile = r"E:\lipread_mp4\AUTHORITIES\val\AUTHORITIES_00047.mp4"
+    audio, video = LRW_DataPreprocessor.preprocessSingleFile(trainFile)
+    VideoUtil.saveVideo(video)

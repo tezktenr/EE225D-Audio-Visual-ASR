@@ -99,15 +99,16 @@ class AudioVisualASR:
         audio, video = AudioVisualASR._prepare_audio_visual_data(audioData, videoData, useGPU)
 
         # make predictions using the model
-        audio_outputs = self.audio_model(audio)
-        video_outputs = self.video_model(video)
-        merged_inputs = torch.cat((audio_outputs, video_outputs), dim=2)
-        outputs = self.concat_model(merged_inputs)
-        if self.isEveryFrame:
-            outputs = torch.mean(outputs, 1)
-        _, preds = torch.max(F.softmax(outputs, dim=1).data, 1)
+        with torch.no_grad():
+            audio_outputs = self.audio_model(audio)
+            video_outputs = self.video_model(video)
+            merged_inputs = torch.cat((audio_outputs, video_outputs), dim=2)
+            outputs = self.concat_model(merged_inputs)
+            if self.isEveryFrame:
+                outputs = torch.mean(outputs, 1)
+            _, preds = torch.max(F.softmax(outputs, dim=1).data, 1)
 
-        predictionIdx = preds.item()
+            predictionIdx = preds.item()
         return self.words[predictionIdx]
 
     def predictFromMP4(self, MP4Filepath, useGPU=False) -> str:

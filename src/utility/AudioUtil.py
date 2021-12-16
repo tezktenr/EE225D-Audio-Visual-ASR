@@ -29,12 +29,14 @@ class AudioUtil:
 
     @staticmethod
     def getAudio(audioFile):
+        if (not FileUtil.fileExists(audioFile)):
+            raise ValueError(f"Cannot find audio file at {audioFile}")
         audioSegment = AudioSegment.from_file(audioFile, FileUtil.getFileExtension(audioFile))
         return audioSegment
 
     @staticmethod
     def saveAudio(audioSegment,
-                  outputFileName=f"_saved_audio_{OtherUtil.getCurrentTimeStamp()}", outputFormat="wav"):
+                  outputFilePath=f"saved_audio_{OtherUtil.getCurrentTimeStamp()}", outputFormat="wav"):
         """
         Save pydub AudioSegment in specified output file
 
@@ -49,17 +51,16 @@ class AudioUtil:
         # 'audioSegment' will be exported/saved to the specified output file
         if (outputFormat.startswith('.')):
             outputFormat = outputFormat[1:]
-        audioSegment.export(outputFileName+f".{outputFormat}", format=outputFormat)
-        return outputFileName
+        audioSegment.export(f"{outputFilePath}.{outputFormat}", format=outputFormat)
+        return f"{outputFilePath}.{outputFormat}"
 
     @staticmethod
     def saveAudioWithNumpy(audioData, samplingRate,
-                           outputFileName=f"_saved_audio_{OtherUtil.getCurrentTimeStamp()}", outputFormat="wav"):
+                           outputFilePath=f"saved_audio_{OtherUtil.getCurrentTimeStamp()}", outputFormat="wav"):
         if (outputFormat.startswith('.')):
             outputFormat = outputFormat[1:]
-        soundfile.write(f"{outputFileName}.{outputFormat}", audioData, samplingRate)
-        return outputFileName
-
+        soundfile.write(f"{outputFilePath}.{outputFormat}", audioData, samplingRate)
+        return f"{outputFilePath}.{outputFormat}"
 
     @staticmethod
     def convertToLrwFormat(mouthVideoFile):
@@ -71,7 +72,7 @@ class AudioUtil:
         return audio
 
     @staticmethod
-    def combineAudioFiles(audioFile1, audioFile2):
+    def combineAudioFiles(audioFile1, audioFile2, outputDir, outputName):
         """
         This method combines/concatenates the audio in audioFile1 and audioFile2
         ------------------------------------------------------------
@@ -91,19 +92,28 @@ class AudioUtil:
         audio2 = AudioUtil.getAudio(audioFile2)
 
         # Combine the audios
-        combinedAudio = audio1 + audio2
-        return combinedAudio
+        combinedAudio = audio1.overlay(audio2)
 
+        return AudioUtil.saveAudio(combinedAudio, outputFilePath=FileUtil.joinPath(outputDir, outputName))
 
     @staticmethod
-    def addWhiteNoiseToAudio(audioFile, volume=0):
+    def addWhiteNoiseToAudioFile(audioFile, outputDir, outputName, noiseVolume=0):
         if (not FileUtil.fileExists(audioFile)):
             raise ValueError(f"Cannot find audio file at '{audioFile}'")
 
+        # Get audio and construct noise (in dBFS)
         audio = AudioUtil.getAudio(audioFile)
-        noise = WhiteNoise().to_audio_segment(duration=len(audio), volume=volume)
+        noise = WhiteNoise().to_audio_segment(duration=len(audio), volume=noiseVolume)
+
+        # Combine audio and noise
         audioWithNoise = audio.overlay(noise)
-        return audioWithNoise
+
+        return AudioUtil.saveAudio(audioWithNoise, outputFilePath=FileUtil.joinPath(outputDir, outputName))
+
+    @staticmethod
+    def generateWhiteNoise(outputDir, outputName, duration=1000, noiseVolume=0):
+        noise = WhiteNoise().to_audio_segment(duration=duration, volume=noiseVolume)
+        return AudioUtil.saveAudio(noise, outputFilePath=FileUtil.joinPath(outputDir, outputName))
 
     @staticmethod
     def normalizeAudio(audioInputs):
@@ -116,7 +126,6 @@ class AudioUtil:
 
 # For Testing Purposes
 if __name__ == "__main__":
-    wordAudio = r"C:\Users\tezkt\Pictures\Camera Roll\win-20211215-00-00-02-pro_93E0Zu8z.mp4"
-    wordAudio = r"C:\Users\tezkt\Pictures\Camera Roll\win-20211215-00-00-02-pro_93E0Zu8z (online-video-cutter.com).mp4"
-    # wordAudio = r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\LRW\ABOUT\test\ABOUT_00001.mp4"
-    AudioUtil.convertToLrwFormat(wordAudio)
+    wordAudioFile = r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\LRW\ABOUT\test\ABOUT_00001.mp4"
+    noiseFile = r"S:\College\UCB\2021 Fall\EE225D\Projects\Data\Noise\1-137-A-32.wav"
+    AudioUtil.addNoiseToAudio(wordAudioFile, noiseFile, noiseVolume=20)
